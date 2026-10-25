@@ -1,13 +1,3 @@
-if (typeof document !== 'undefined') {
-  for (const cssHref of ['./src/style.css', './src/print.css', './style.css', './print.css']) {
-    if (!document.querySelector(`link[href="${cssHref}"]`) && cssHref.startsWith('./src/')) {
-      const l = document.createElement('link');
-      l.rel = 'stylesheet';
-      l.href = new URL(cssHref.replace('./src/', './'), import.meta.url).href;
-      document.head.appendChild(l);
-    }
-  }
-}
 import { calculateDetailedMetrics, formatDuration, getPerformanceBand, analyzeWords } from './report-utils.js'
 import { lessons, renderLessons, bindLessonActions } from './learning-content.js'
 import { renderGames, bindGameActions } from './typing-games.js'
@@ -16,8 +6,8 @@ import { loadPracticeExerciseData, loadPracticeExerciseText } from './practice-e
 /* ============================================================================
    IN-APP GITHUB AUTO-UPDATE CHECKER & 1-CLICK INSTALLER (WINDOWS + MAC)
    ============================================================================ */
-let APP_CURRENT_VERSION = '1.4.1';
-let APP_RUNTIME_INFO = { version: '1.4.1', platform: 'web', arch: 'x64', isElectron: false };
+let APP_CURRENT_VERSION = '1.5.2';
+let APP_RUNTIME_INFO = { version: '1.5.2', platform: 'web', arch: 'x64', isElectron: false };
 const GITHUB_REPO_OWNER = 'Iamajeetram';
 const GITHUB_REPO_NAME = 'xtreme-ag-typing-tutor';
 const GITHUB_REPO_CANDIDATES = [
@@ -110,36 +100,53 @@ function categorizeReleaseAssets(release) {
   };
 }
 
-async function checkAppUpdates(isManual = false) {
-  await loadAppRuntimeInfo();
-  try {
-    let release = null;
-    for (const repoSlug of GITHUB_REPO_CANDIDATES) {
+async function fetchNewestGitHubRelease() {
+  let newestRelease = null;
+  const bust = Date.now();
+  for (const repoSlug of GITHUB_REPO_CANDIDATES) {
+    // Check both /releases/latest and /releases?per_page=5 so CDN cache never hides a newly published release
+    const endpoints = [
+      `https://api.github.com/repos/${repoSlug}/releases/latest?t=${bust}`,
+      `https://api.github.com/repos/${repoSlug}/releases?per_page=5&t=${bust}`
+    ];
+    for (const url of endpoints) {
       try {
-        const resp = await fetch(`https://api.github.com/repos/${repoSlug}/releases/latest`, { cache: 'no-store' });
-        if (resp.ok) {
-          release = await resp.json();
-          if (release && (release.tag_name || release.name)) break;
+        const resp = await fetch(url, { cache: 'no-store' });
+        if (!resp.ok) continue;
+        const data = await resp.json();
+        const candidates = Array.isArray(data) ? data.filter(r => r && !r.draft) : [data];
+        for (const rel of candidates) {
+          if (!rel || !(rel.tag_name || rel.name)) continue;
+          if (!newestRelease) {
+            newestRelease = rel;
+          } else {
+            const curTag = newestRelease.tag_name || newestRelease.name || '';
+            const nextTag = rel.tag_name || rel.name || '';
+            if (compareVersions(nextTag, curTag) > 0) {
+              newestRelease = rel;
+            }
+          }
         }
       } catch {}
     }
+    if (newestRelease) break;
+  }
+  return newestRelease;
+}
+
+async function checkAppUpdates(isManual = false) {
+  await loadAppRuntimeInfo();
+  try {
+    const release = await fetchNewestGitHubRelease();
     if (!release) {
       if (isManual) {
-        alert(`You are using AG Typing Tutor v${APP_CURRENT_VERSION} (Latest Version).\n\nNote for Admin: Make sure your GitHub repository ('${GITHUB_REPO_OWNER}/${GITHUB_REPO_NAME}') is set to PUBLIC and GitHub Actions has finished publishing the Release.`);
+        alert(`You are using AG Typing Tutor v${APP_CURRENT_VERSION} (Latest Version).`);
       }
       return;
     }
     const latestTag = release.tag_name || release.name || '';
     if (compareVersions(latestTag, APP_CURRENT_VERSION) > 0) {
       const bestAsset = pickBestReleaseAsset(release);
-      if (!bestAsset) {
-        // The release exists, but the installer for this OS (.dmg for Mac or .exe for Windows) hasn't finished uploading yet
-        if (isManual) {
-          const osLabel = detectRuntimePlatform() === 'darwin' ? 'macOS (.dmg)' : 'Windows (.exe)';
-          alert(`New release ${latestTag} was found, but the ${osLabel} installer is still being built by GitHub Actions. Please try again in 2-3 minutes.`);
-        }
-        return;
-      }
       showUpdateModal(release, bestAsset);
     } else if (isManual) {
       alert(`Great! You are already using the latest version of AG Typing Tutor (v${APP_CURRENT_VERSION}).`);
@@ -152,10 +159,10 @@ async function checkAppUpdates(isManual = false) {
 function showUpdateModal(release, matchedAsset = null) {
   document.querySelector('#ag-update-modal')?.remove();
   const latestTag = release.tag_name || release.name || 'Latest';
-  const bestAsset = matchedAsset || pickBestReleaseAsset(release);
-  if (!bestAsset) return;
-  const downloadUrl = bestAsset.browser_download_url || release.html_url;
-  const assetName = bestAsset.name || 'Update Package';
+  let bestAsset = matchedAsset || pickBestReleaseAsset(release);
+  const downloadUrl = bestAsset?.browser_download_url || release.html_url || `https://github.com/${GITHUB_REPO_OWNER}/${GITHUB_REPO_NAME}/releases/latest`;
+  const osLabel = detectRuntimePlatform() === 'darwin' ? 'macOS (.dmg)' : 'Windows (.exe)';
+  const assetName = bestAsset?.name || `${osLabel} Installer`;
   const allBuilds = categorizeReleaseAssets(release);
 
   const buildLinksHtml = [
@@ -167,18 +174,18 @@ function showUpdateModal(release, matchedAsset = null) {
 
   const modal = document.createElement('div');
   modal.id = 'ag-update-modal';
-  modal.style.cssText = 'position:fixed; top:0; left:0; width:100vw; height:100vh; background:rgba(15,23,42,0.82); display:flex; align-items:center; justify-content:center; z-index:999999; backdrop-filter:blur(5px); font-family:inherit;';
+  modal.style.cssText = 'position:fixed; top:0; left:0; width:100vw; height:100vh; background:rgba(15,23,42,0.84); display:flex; align-items:center; justify-content:center; z-index:999999; backdrop-filter:blur(6px); font-family:inherit;';
 
   modal.innerHTML = `
-    <div style="background:#ffffff; border-radius:22px; padding:32px; max-width:540px; width:92%; box-shadow:0 25px 60px rgba(0,0,0,0.35); text-align:center; border:1px solid #cbd5e1;">
+    <div style="background:#ffffff; border-radius:22px; padding:32px; max-width:530px; width:92%; box-shadow:0 25px 60px rgba(0,0,0,0.4); text-align:center; border:1px solid #cbd5e1;">
       <div style="font-size:46px; margin-bottom:8px;">🚀</div>
       <h2 style="font-size:22px; font-weight:800; color:#0f172a; margin:0 0 6px 0;">New Update Available (${escapeHtml(latestTag)})!</h2>
       <p style="font-size:13.5px; color:#64748b; margin:0 0 14px 0;">
         Installed: <strong>v${escapeHtml(APP_CURRENT_VERSION)}</strong> &nbsp;→&nbsp; New: <strong>${escapeHtml(latestTag)}</strong><br/>
-        <span style="font-size:12px; color:#0f766e; font-weight:700;">Matched Package: ${escapeHtml(assetName)}</span>
+        <span style="font-size:12px; color:#0f766e; font-weight:700;">Package: ${escapeHtml(assetName)}</span>
       </p>
 
-      <div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:12px; padding:14px; font-size:12.5px; color:#334155; text-align:left; max-height:130px; overflow-y:auto; margin-bottom:14px; line-height:1.6; white-space:pre-wrap;">${escapeHtml(release.body || 'Includes latest exercise additions, RSSB LDC exam pattern improvements, and performance enhancements.')}</div>
+      <div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:12px; padding:14px; font-size:12.5px; color:#334155; text-align:left; max-height:130px; overflow-y:auto; margin-bottom:14px; line-height:1.6; white-space:pre-wrap;">${escapeHtml(release.body || 'Includes latest exercise additions, zero-lag real-time typing engine, RSSB LDC exam pattern improvements, and performance enhancements.')}</div>
 
       ${buildLinksHtml ? `<div style="background:#eff6ff; border:1px solid #bfdbfe; border-radius:10px; padding:8px 10px; margin-bottom:16px; line-height:1.7;">${buildLinksHtml}</div>` : ''}
 
@@ -193,28 +200,43 @@ function showUpdateModal(release, matchedAsset = null) {
       </div>
 
       <div id="ag-update-btn-row" style="display:flex; gap:12px;">
-        <button type="button" id="ag-start-auto-update-btn" class="primary-button" style="flex:1; padding:12px; font-size:15px; font-weight:700; border-radius:10px; box-shadow:0 4px 14px rgba(37,99,235,0.35); cursor:pointer;">⚡ Auto-Update &amp; Restart Now</button>
-        <button type="button" id="ag-dismiss-update-btn" class="secondary-button" style="padding:12px 18px; font-size:14px; font-weight:600; border-radius:10px; cursor:pointer;">Later</button>
+        <button type="button" id="ag-start-auto-update-btn" class="primary-button" style="flex:1; padding:13px 18px; font-size:15px; font-weight:800; border-radius:11px; box-shadow:0 6px 18px rgba(37,99,235,0.35); cursor:pointer;">⚡ Update Now</button>
+        <button type="button" id="ag-dismiss-update-btn" class="secondary-button" style="padding:13px 22px; font-size:14.5px; font-weight:700; border-radius:11px; cursor:pointer;">Later</button>
       </div>
     </div>
   `;
 
-  document.body.appendChild(modal);
+  document.body.appendChild(modal)
+  modal.querySelector('#typing-fullscreen-back')?.addEventListener('click', () => {
+    stopTypingTimer()
+    modal.remove()
+    document.querySelector('.practice-exercise-sidebar')?.classList.remove('is-hidden-during-test')
+    renderSection(selectedPracticeLanguage === 'hi' ? 'practice-hi' : 'practice-en')
+  });
 
   modal.querySelector('#ag-dismiss-update-btn')?.addEventListener('click', () => {
     modal.remove();
   });
 
   modal.querySelector('#ag-start-auto-update-btn')?.addEventListener('click', async () => {
-    if (!APP_RUNTIME_INFO.isElectron || !bestAsset?.browser_download_url) {
-      window.open(downloadUrl, '_blank');
-      return;
-    }
     const btnRow = modal.querySelector('#ag-update-btn-row');
     const progWrap = modal.querySelector('#ag-update-progress-wrap');
     const statusTxt = modal.querySelector('#ag-update-status-text');
     const pctTxt = modal.querySelector('#ag-update-percent-text');
     const progBar = modal.querySelector('#ag-update-progress-bar');
+
+    if (!bestAsset) {
+      try {
+        const freshRel = await fetchNewestGitHubRelease();
+        if (freshRel) bestAsset = pickBestReleaseAsset(freshRel);
+      } catch {}
+    }
+
+    if (!APP_RUNTIME_INFO.isElectron || !bestAsset?.browser_download_url) {
+      window.open(bestAsset?.browser_download_url || downloadUrl, '_blank');
+      modal.remove();
+      return;
+    }
 
     if (btnRow) btnRow.style.display = 'none';
     if (progWrap) progWrap.style.display = 'block';
@@ -233,7 +255,7 @@ function showUpdateModal(release, matchedAsset = null) {
           if (st.state === 'error') {
             clearInterval(poll);
             alert('Auto-update error: ' + st.message + '\nOpening direct download link instead.');
-            window.open(downloadUrl, '_blank');
+            window.open(bestAsset.browser_download_url, '_blank');
             modal.remove();
           } else if (st.state === 'done') {
             clearInterval(poll);
@@ -241,7 +263,7 @@ function showUpdateModal(release, matchedAsset = null) {
         } catch {}
       }, 400);
     } catch (e) {
-      window.open(downloadUrl, '_blank');
+      window.open(bestAsset.browser_download_url || downloadUrl, '_blank');
       modal.remove();
     }
   });
@@ -250,9 +272,12 @@ function showUpdateModal(release, matchedAsset = null) {
 setTimeout(async () => {
   try {
     await loadAppRuntimeInfo();
-    if (APP_RUNTIME_INFO.isElectron) checkAppUpdates(false);
+    const isWebPractice = !APP_RUNTIME_INFO.isElectron && typeof window !== 'undefined' && /\/practice/i.test(window.location.pathname || '');
+    if (!isWebPractice) {
+      checkAppUpdates(false);
+    }
   } catch {}
-}, 3000);
+}, 900);
 
 document.addEventListener('click', (e) => {
   if (e.target && (e.target.id === 'check-app-update-btn' || e.target.closest('#check-app-update-btn'))) {
@@ -266,45 +291,45 @@ let practiceExerciseData = []
 
 const sections = [
   {
-    id: 'learn',
+    id: 'learn-en',
     icon: '📘',
-    title: 'Learn',
-    description: 'Learn touch typing from beginner to advanced.',
-    label: 'START LEARNING',
+    title: 'Learn (English)',
+    description: 'Learn English touch typing from beginner to advanced.',
+    label: 'START ENGLISH LEARNING',
   },
   {
-    id: 'practice',
+    id: 'learn-hi',
+    icon: '📘',
+    title: 'Learn (हिन्दी)',
+    description: 'हिन्दी (DevLys / KrutiDev 010) टंकण शुरू से सीखें।',
+    label: 'START HINDI LEARNING',
+  },
+  {
+    id: 'practice-en',
     icon: '⌨️',
-    title: 'Practice Typing',
-    description: 'Practise words, sentences and paragraphs.',
-    label: 'START PRACTICE',
+    title: 'Practice (English)',
+    description: 'Practise 300 English typing passages with live speed and accuracy.',
+    label: 'START ENGLISH PRACTICE',
   },
   {
-    id: 'games',
-    icon: '🎮',
-    title: 'Typing Games',
-    description: 'Improve your typing skills through games.',
-    label: 'PLAY GAMES',
-  },
-  {
-    id: 'speed',
-    icon: '⚡',
-    title: 'Speed Test',
-    description: 'Measure your typing speed and accuracy.',
-    label: 'TEST SPEED',
+    id: 'practice-hi',
+    icon: '⌨️',
+    title: 'Practice (हिन्दी)',
+    description: '300 हिन्दी (DevLys 010) गद्यांशों का अभ्यास करें।',
+    label: 'START HINDI PRACTICE',
   },
   {
     id: 'word-efficiency',
     icon: '📝',
     title: 'MS Word Efficiency',
-    description: 'Practise exam-style document formatting tasks.',
+    description: 'Practise exam-style MS Word 2013 document formatting tasks.',
     label: 'OPEN WORD TEST',
   },
   {
     id: 'excel-efficiency',
     icon: '📊',
     title: 'MS Excel Efficiency',
-    description: 'Practise spreadsheet formulas and formatting tasks.',
+    description: 'Practise exam-style MS Excel 2013 spreadsheet formulas & formatting.',
     label: 'OPEN EXCEL TEST',
   },
 ]
@@ -335,13 +360,11 @@ let appLanguage = localStorage.getItem('ag-language') === 'hi' ? 'hi' : 'en'
 let userProfile = null
 try {
   const parsed = JSON.parse(localStorage.getItem('ag-user-profile') || 'null')
-  if (parsed && typeof parsed === 'object' && String(parsed.name || '').trim() && parsed.id !== 'ag-default-admin') {
+  if (parsed && parsed.name && parsed.id !== 'ag-default-admin') {
     userProfile = parsed
   }
 } catch { userProfile = null }
 
-// Keep the completed profile on this browser/device so reopening the site does not
-// ask for registration again. Cross-device sync requires a real shared backend/account.
 function persistAgProfileLocally(profile) {
   if (!profile || !String(profile.name || '').trim()) return false
   try {
@@ -391,8 +414,7 @@ async function syncUserProfileWithDisk(profileToSave = null) {
         if (diskProf && diskProf.name && diskProf.id !== 'ag-default-admin') {
           userProfile = diskProf
           localStorage.setItem('ag-user-profile', JSON.stringify(diskProf))
-          if (currentSection === 'home') ensureAgWhatsAppSupport()
-renderHome()
+          if (currentSection === 'home') renderHome()
         }
       }
     }
@@ -419,7 +441,12 @@ const AG_DEVLYS_SHIFT_MAP = {
 };
 
 function reorderPendingDevLysChhotiEE(str) {
-  return str.replace(/\u200Bि((?:[\u0915-\u0939\u0958-\u095F]\u094D)*[\u0915-\u0939\u0958-\u095F])$/u, '$1ि');
+  if (!str || str.length < 2) return str;
+  const splitAt = Math.max(0, str.length - 18);
+  const head = str.slice(0, splitAt);
+  const tail = str.slice(splitAt);
+  if (!tail.includes('\u200Bि')) return str;
+  return head + tail.replace(/\u200Bि((?:[\u0915-\u0939\u0958-\u095F]\u094D)*[\u0915-\u0939\u0958-\u095F])$/u, '$1ि');
 }
 
 function applyDevLysKeystrokeToText(currentText, rawKey, shiftKey = false, targetPassage = '') {
@@ -434,7 +461,6 @@ function applyDevLysKeystrokeToText(currentText, rawKey, shiftKey = false, targe
   if (!mapped) return null;
 
   let text = String(currentText || '');
-  const cleanLen = text.replace(/\u200B/g, '').length;
 
   if (rawKey === 'Q' && text.endsWith('उ')) return text.slice(0, -1) + 'ऊ';
   if (rawKey === 'Z' && text.endsWith('इ')) return text.slice(0, -1) + 'ई';
@@ -458,14 +484,22 @@ function applyDevLysKeystrokeToText(currentText, rawKey, shiftKey = false, targe
   }
 
   if (isShifted && rawKey === 'Z') {
-    const m = text.match(/((?:[\u0915-\u0939\u0958-\u095F]\u094D)*[\u0915-\u0939\u0958-\u095F][\u093E-\u094C\u0901\u0902\u0903]*)$/u);
+    const splitAt = Math.max(0, text.length - 18);
+    const head = text.slice(0, splitAt);
+    const tail = text.slice(splitAt);
+    const m = tail.match(/((?:[\u0915-\u0939\u0958-\u095F]\u094D)*[\u0915-\u0939\u0958-\u095F][\u093E-\u094C\u0901\u0902\u0903]*)$/u);
     if (m) {
-      const idx = text.length - m[1].length;
-      return text.slice(0, idx) + 'र्' + m[1];
+      const idx = tail.length - m[1].length;
+      return head + tail.slice(0, idx) + 'र्' + m[1];
     }
   }
 
   if (rawKey === "'" && !isShifted && targetPassage) {
+    let zCount = 0;
+    for (let i = 0; i < text.length; i++) {
+      if (text.charCodeAt(i) === 0x200B) zCount++;
+    }
+    const cleanLen = text.length - zCount;
     const nextExpected = targetPassage.slice(cleanLen, cleanLen + 2);
     if (nextExpected.startsWith('श') && !nextExpected.startsWith('श्')) {
       mapped = 'श';
@@ -475,6 +509,11 @@ function applyDevLysKeystrokeToText(currentText, rawKey, shiftKey = false, targe
   if (!isShifted && lowerKey === 'f') {
     const lastChar = text.slice(-1);
     const prevIsBareConsonant = /[\u0915-\u0939\u0958-\u095F]/u.test(lastChar);
+    let zCount = 0;
+    for (let i = 0; i < text.length; i++) {
+      if (text.charCodeAt(i) === 0x200B) zCount++;
+    }
+    const cleanLen = text.length - zCount;
     const targetExpectsLogicalI = targetPassage && targetPassage[cleanLen] === 'ि' && prevIsBareConsonant;
     if (!targetExpectsLogicalI) {
       return text + '\u200Bि';
@@ -489,6 +528,22 @@ function applyDevLysKeystrokeToText(currentText, rawKey, shiftKey = false, targe
   return nextText;
 }
 
+function fastUpdateTextareaValue(inputEl, nextVal) {
+  if (!inputEl) return;
+  const oldVal = inputEl.value;
+  if (oldVal === nextVal) return;
+  let common = 0;
+  const minLen = Math.min(oldVal.length, nextVal.length);
+  while (common < minLen && oldVal.charCodeAt(common) === nextVal.charCodeAt(common)) {
+    common++;
+  }
+  try {
+    inputEl.setRangeText(nextVal.slice(common), common, oldVal.length, 'end');
+  } catch {
+    inputEl.value = nextVal;
+  }
+}
+
 function sanitizeTrailingAsciiInHindiBox(inputEl, targetPassage = '') {
   if (!inputEl) return;
   const rawVal = inputEl.value;
@@ -499,7 +554,7 @@ function sanitizeTrailingAsciiInHindiBox(inputEl, targetPassage = '') {
     const isShift = (lastChar !== lastChar.toLowerCase() && lastChar === lastChar.toUpperCase()) || '~!@#$%^&*()_+{}|:"<>?'.includes(lastChar);
     const converted = applyDevLysKeystrokeToText(prefix, lastChar, isShift, targetPassage);
     if (converted !== null) {
-      inputEl.value = converted;
+      fastUpdateTextareaValue(inputEl, converted);
     }
   }
 }
@@ -584,65 +639,134 @@ function calculateTypingStats(value, elapsedSeconds) {
   return calculateDetailedMetrics(value, typingPassage, elapsedSeconds * 1000)
 }
 
-function renderTypingPassage(value) {
-  const target = document.querySelector('#typing-passage')
-  if (!target) return
-  const cleanValue = String(value ?? '').replace(/\u200B/g, '')
-  const wordAnalysis = analyzeWords(cleanValue, typingPassage)
-  const wordByStart = new Map(wordAnalysis.words.map((w) => [w.start, w]))
-  const tokens = [...typingPassage.matchAll(/\S+|\s+/g)]
-  target.innerHTML = tokens.map((match) => {
-    const token = match[0]
-    const start = match.index
-    if (/^\s+$/.test(token)) return escapeHtml(token).replace(/\n/g, '<br>')
-    const word = wordByStart.get(start)
-    const status = word?.status || 'untyped'
-    const isActiveUntyped = (status === 'untyped' && word?.index === wordAnalysis.activeWordIndex)
-    let wordClass = 'typing-word'
-    if (practiceOptions.wordHighlight) {
-      if (status === 'correct') wordClass += ' word-correct'
-      else if (status === 'wrong' || status === 'omitted') wordClass += ' word-incorrect'
-      else if (status === 'in-progress' || (isActiveUntyped && cleanValue.length > 0)) wordClass += ' word-in-progress'
-    }
-    const typedChars = [...String(word?.typed || '')]
-    const chars = [...token].map((char, offset) => {
-      let charClass = 'typing-char'
-      if (practiceOptions.textHighlight) {
-        if (status === 'correct') {
-          charClass += ' correct'
-        } else if (status === 'omitted') {
-          charClass += ' incorrect'
-        } else if (status === 'wrong') {
-          charClass += (offset < typedChars.length && typedChars[offset] === char) ? ' correct' : ' incorrect'
-        } else if (status === 'in-progress') {
-          if (offset < typedChars.length) {
-            charClass += typedChars[offset] === char ? ' correct' : ' incorrect'
-          } else if (offset === typedChars.length) {
-            charClass += ' current'
-          }
-        } else if (isActiveUntyped && offset === 0) {
-          charClass += ' current'
-        }
-      }
-      return `<span class="${charClass}">${escapeHtml(char)}</span>`
-    }).join('')
-    return `<span class="${wordClass}">${chars}</span>`
-  }).join('')
+let _liveTypingRafId = null;
+let _idleAlignTimerId = null;
+let _cachedPassageForTotalWords = '';
+let _cachedTotalWordsCount = 0;
 
-  // Auto-scroll active word into view smoothly
-  const activeEl = target.querySelector('.word-in-progress, .typing-char.current')
-  if (activeEl && target.scrollHeight > target.clientHeight) {
-    const topPos = activeEl.offsetTop - target.offsetTop
-    const desiredScroll = Math.max(0, topPos - target.clientHeight * 0.4)
-    if (Math.abs(target.scrollTop - desiredScroll) > 28) {
-      target.scrollTop = desiredScroll
+function getTotalWordsCached(passage) {
+  if (passage !== _cachedPassageForTotalWords) {
+    _cachedPassageForTotalWords = passage;
+    _cachedTotalWordsCount = (String(passage || '').trim().match(/\S+/g) || []).length;
+  }
+  return _cachedTotalWordsCount;
+}
+
+function fastHighlightActiveWordOnly(rawVal) {
+  const target = document.querySelector('#typing-passage');
+  if (!target || !target._wordNodes || !target._wordsList) {
+    const wa = renderTypingPassage(rawVal);
+    updateTypingStats(wa);
+    return;
+  }
+  const activeIdx = target._prevActiveIdx;
+  if (activeIdx < 0 || activeIdx >= target._wordNodes.length) return;
+  const node = target._wordNodes[activeIdx];
+  const wordObj = target._wordsList[activeIdx];
+  if (!node || !wordObj) return;
+
+  const cleanVal = String(rawVal ?? '').replace(/\u200B/g, '');
+  const lastSpace = cleanVal.search(/\s+\S*$/);
+  const currentToken = lastSpace >= 0 ? cleanVal.slice(lastSpace).trimStart() : cleanVal.trimStart();
+
+  let nextClass = 'typing-word';
+  if (practiceOptions.wordHighlight || practiceOptions.textHighlight) {
+    if (!currentToken) {
+      nextClass += ' word-current-target';
+    } else if (wordObj.text.startsWith(currentToken)) {
+      nextClass += ' word-in-progress';
+    } else {
+      nextClass += ' word-incorrect';
+    }
+  }
+  if (target._wordStates[activeIdx] !== nextClass) {
+    node.className = nextClass;
+    target._wordStates[activeIdx] = nextClass;
+  }
+}
+
+function renderTypingPassage(value, precomputedWordAnalysis = null) {
+  const target = document.querySelector('#typing-passage');
+  if (!target) return null;
+  const cleanValue = String(value ?? '').replace(/\u200B/g, '');
+  const wordAnalysis = precomputedWordAnalysis || analyzeWords(cleanValue, typingPassage);
+
+  const optsSig = `${practiceOptions.wordHighlight ? 1 : 0}-${practiceOptions.textHighlight ? 1 : 0}`;
+
+  // Build initial word DOM nodes ONCE per passage (never destroy/recreate nodes on keystrokes!)
+  if (target._renderedPassage !== typingPassage || target._renderedOpts !== optsSig || !target._wordNodes) {
+    const wordByStart = new Map(wordAnalysis.words.map((w) => [w.start, w]));
+    const tokens = [...typingPassage.matchAll(/\S+|\s+/g)];
+    const htmlParts = [];
+    for (const match of tokens) {
+      const token = match[0];
+      const start = match.index;
+      if (/^\s+$/.test(token)) {
+        htmlParts.push(escapeHtml(token).replace(/\n/g, '<br>'));
+      } else {
+        const w = wordByStart.get(start);
+        const wIdx = w ? w.index : 0;
+        htmlParts.push(`<span class="typing-word" data-w-idx="${wIdx}">${escapeHtml(token)}</span>`);
+      }
+    }
+    target.innerHTML = htmlParts.join('');
+    target._renderedPassage = typingPassage;
+    target._renderedOpts = optsSig;
+    target._wordNodes = Array.from(target.querySelectorAll('.typing-word'));
+    target._wordStates = new Array(target._wordNodes.length).fill('untyped');
+    target._prevActiveIdx = -1;
+  }
+
+  const wordNodes = target._wordNodes;
+  const wordStates = target._wordStates;
+  const words = wordAnalysis.words;
+  target._wordsList = words;
+  const activeIdx = wordAnalysis.activeWordIndex;
+  const activeChanged = (target._prevActiveIdx !== activeIdx);
+
+  for (let i = 0; i < words.length; i++) {
+    const w = words[i];
+    const node = wordNodes[i];
+    if (!node) continue;
+    const status = w.status || 'untyped';
+    const isActiveUntyped = (status === 'untyped' && i === activeIdx);
+
+    let nextClass = 'typing-word';
+    if (practiceOptions.wordHighlight || practiceOptions.textHighlight) {
+      if (status === 'correct') nextClass += ' word-correct';
+      else if (status === 'wrong' || status === 'omitted') nextClass += ' word-incorrect';
+      else if (status === 'in-progress') {
+        nextClass += w.text.startsWith(w.typed || '') ? ' word-in-progress' : ' word-incorrect';
+      } else if (isActiveUntyped && cleanValue.length > 0) {
+        nextClass += ' word-current-target';
+      } else if (isActiveUntyped) {
+        nextClass += ' word-current-target';
+      }
+    }
+
+    if (wordStates[i] !== nextClass) {
+      node.className = nextClass;
+      wordStates[i] = nextClass;
     }
   }
 
-  const correctWords = document.querySelector('#typing-correct-words')
-  const incorrectWords = document.querySelector('#typing-incorrect-words')
-  if (correctWords) correctWords.textContent = String(wordAnalysis.correctWords)
-  if (incorrectWords) incorrectWords.textContent = String(wordAnalysis.incorrectWords)
+  target._prevActiveIdx = activeIdx;
+
+  // Only check scroll when active word index actually changes (prevents layout reflow during typing)
+  if (activeChanged && activeIdx >= 0 && wordNodes[activeIdx]) {
+    const activeNode = wordNodes[activeIdx];
+    const topPos = activeNode.offsetTop - target.offsetTop;
+    const desiredScroll = Math.max(0, topPos - 70);
+    if (Math.abs(target.scrollTop - desiredScroll) > 36) {
+      target.scrollTop = desiredScroll;
+    }
+  }
+
+  const correctWords = document.querySelector('#typing-correct-words');
+  const incorrectWords = document.querySelector('#typing-incorrect-words');
+  if (correctWords) correctWords.textContent = String(wordAnalysis.correctWords);
+  if (incorrectWords) incorrectWords.textContent = String(wordAnalysis.incorrectWords);
+  return wordAnalysis;
 }
 function stopTypingTimer() {
   if (typingTimer) clearInterval(typingTimer)
@@ -651,10 +775,10 @@ function stopTypingTimer() {
 
 function countWords(value) { return (String(value || '').trim().match(/\S+/g) || []).length }
 
-function getSelectedNetWpm(stats, elapsedSeconds, typedText = typingInputValue, targetText = typingPassage) {
+function getSelectedNetWpm(stats, elapsedSeconds, typedText = typingInputValue, targetText = typingPassage, precomputedWordStats = null) {
   if (typingWpmMethod !== 'words') return Number(stats.netWpm ?? stats.wpm ?? 0)
   const minutes = Math.max(Number(elapsedSeconds || 0) / 60, 1 / 60)
-  const wordStats = analyzeWords(typedText, targetText)
+  const wordStats = precomputedWordStats || analyzeWords(typedText, targetText)
   return Math.round(wordStats.correctWords / minutes)
 }
 
@@ -809,7 +933,7 @@ function finishTypingTest() {
   const previousAttempt = getLastExerciseAttempt(result.exerciseId)
   result.previousAttempt = previousAttempt ? { netWpm: previousAttempt.netWpm ?? previousAttempt.wpm ?? 0, grossWpm: previousAttempt.grossWpm ?? previousAttempt.wpm ?? 0, accuracy: previousAttempt.accuracy ?? 0, errors: previousAttempt.errors ?? 0 } : null
   saveTypingResult(result)
-  if (currentSection === 'practice' && typingInputValue.length >= typingPassage.length) setExerciseCompleted(result.exerciseId)
+  if ((currentSection === 'practice-en' || currentSection === 'practice-hi' || currentSection === 'practice') && typingInputValue.length >= typingPassage.length) setExerciseCompleted(result.exerciseId)
   const resultBox = document.querySelector('#typing-result')
   if (resultBox) { resultBox.hidden = true; resultBox.innerHTML = '' }
   try { showTypingReportPopup(result, stats) }
@@ -823,7 +947,7 @@ function finishTypingTest() {
     document.body.appendChild(fallback)
     fallback.querySelector('#typing-fallback-close')?.addEventListener('click', () => fallback.remove())
     fallback.querySelector('#typing-fallback-print')?.addEventListener('click', () => window.print())
-    fallback.querySelector('#typing-fallback-practice')?.addEventListener('click', () => { fallback.remove(); document.querySelector('#typing-fullscreen')?.remove(); document.querySelector('.practice-exercise-sidebar')?.classList.remove('is-hidden-during-test'); renderSection('practice') })
+    fallback.querySelector('#typing-fallback-practice')?.addEventListener('click', () => { fallback.remove(); document.querySelector('#typing-fullscreen')?.remove(); document.querySelector('.practice-exercise-sidebar')?.classList.remove('is-hidden-during-test'); renderSection(selectedPracticeLanguage === 'hi' ? 'practice-hi' : 'practice-en') })
   }
   const status = document.querySelector('#typing-status')
   if (status) status.textContent = 'Test complete. Your detailed report is saved in My Performance.'
@@ -836,7 +960,7 @@ function showTypingReportPopup(result, stats) {
   overlay.className = 'typing-report-modal'
   overlay.innerHTML = `<section class="typing-report-dialog" role="dialog" aria-modal="true" aria-label="Typing test report"><header class="typing-report-modal-header"><div><span class="eyebrow">AG TYPING TUTOR BY XTREME AG APPS</span><h2>Typing test report</h2></div><div class="typing-report-toolbar"><button type="button" class="primary-button" id="typing-print"><span aria-hidden="true">▣</span> Print / Save PDF</button><button type="button" class="secondary-button" id="typing-export-csv">Export CSV</button><button type="button" class="secondary-button" id="typing-report-retry">↻ Retry this exercise</button><button type="button" class="secondary-button" id="typing-report-practice">⌂ Practice exercises</button><button type="button" class="secondary-button" id="typing-report-close">Return to practice</button></div></header><div class="typing-result report-watermark">${buildDetailedReportHTML(result, stats)}</div></section>`
   document.body.appendChild(overlay)
-  const close = () => { overlay.remove(); window.removeEventListener('keydown', onReportEscape); document.querySelector('#typing-fullscreen')?.remove(); document.querySelector('.practice-exercise-sidebar')?.classList.remove('is-hidden-during-test'); renderSection('practice') }
+  const close = () => { overlay.remove(); window.removeEventListener('keydown', onReportEscape); document.querySelector('#typing-fullscreen')?.remove(); document.querySelector('.practice-exercise-sidebar')?.classList.remove('is-hidden-during-test'); renderSection(selectedPracticeLanguage === 'hi' ? 'practice-hi' : 'practice-en') }
   overlay.querySelector('#typing-report-close')?.addEventListener('click', close)
   overlay.addEventListener('click', (event) => { if (event.target === overlay) close() })
   overlay.querySelector('#typing-print')?.addEventListener('click', () => { document.body.classList.add('printing-typing-report'); window.print() })
@@ -892,15 +1016,26 @@ function buildDetailedReportHTML(result, stats) {
   `
 }
 
-function updateTypingStats() {
+function updateTypingStats(precomputedWordAnalysis = null) {
   const maxAllowedSec = Math.max(1, Math.round((Number(typingDuration) || 10) * 60))
   const elapsed = typingStartedAt ? Math.max(1, Math.min(maxAllowedSec, Math.round((Date.now() - typingStartedAt) / 1000))) : 0
-  const stats = calculateTypingStats(typingInputValue, elapsed || 1)
+  const wordStats = precomputedWordAnalysis || analyzeWords(typingInputValue, typingPassage)
+  const minutes = Math.max((elapsed || 1) / 60, 1 / 60)
+  const inputLen = typingInputValue.length
+  const grossWpm = Math.round((inputLen / 5) / minutes)
+  const netWpm = Math.max(0, Math.round((wordStats.correctChars / 5) / minutes))
+  const stats = {
+    correct: wordStats.correctChars,
+    errors: wordStats.errorChars,
+    wpm: netWpm,
+    grossWpm,
+    netWpm,
+    accuracy: inputLen ? Math.round((wordStats.correctChars / inputLen) * 100) : 100
+  }
   const time = document.querySelector('#typing-time')
   const wpm = document.querySelector('#typing-wpm')
   const accuracy = document.querySelector('#typing-accuracy')
   const errors = document.querySelector('#typing-errors')
-  const wordStats = analyzeWords(typingInputValue, typingPassage)
   const timeLabel = `${Math.floor(typingRemaining / 60)}:${String(typingRemaining % 60).padStart(2, '0')}`
   if (time) time.textContent = timeLabel
   const fullscreenTime = document.querySelector('#fullscreen-countdown')
@@ -911,11 +1046,11 @@ function updateTypingStats() {
   const correctWords = document.querySelector('#typing-correct-words')
   const totalWords = document.querySelector('#typing-total-words')
   if (correctWords) correctWords.textContent = String(wordStats.correctWords)
-  if (totalWords) totalWords.textContent = String((typingPassage.trim().match(/\S+/g) || []).length)
+  if (totalWords) totalWords.textContent = String(getTotalWordsCached(typingPassage))
   const gaugeNet = document.querySelector('#speedometer-net')
   const gaugeGross = document.querySelector('#speedometer-gross')
   const gaugeProgress = document.querySelector('#speedometer-progress')
-  const liveNetWpm = getSelectedNetWpm(stats, elapsed || 1)
+  const liveNetWpm = getSelectedNetWpm(stats, elapsed || 1, typingInputValue, typingPassage, wordStats)
   if (gaugeNet) gaugeNet.textContent = String(liveNetWpm)
   if (gaugeGross) gaugeGross.textContent = String(stats.grossWpm ?? stats.wpm ?? 0)
   if (gaugeProgress) { const pct = Math.max(0, Math.min(1, liveNetWpm / 60)); const length = 270.2; gaugeProgress.style.strokeDasharray = `${length * pct} ${length}` }
@@ -933,7 +1068,7 @@ async function startTypingTest() {
   else {
     const parts = []
     let words = 0
-    const targetWords = Math.max(850, typingDuration * 35)
+    const targetWords = Math.max(180, (typingDuration || 1) * 70)
     const seenSentences = new Set()
     if (!selectedFirst.length) {
       if (status) status.textContent = 'Exercises are still loading. Please try again shortly.'
@@ -1012,7 +1147,7 @@ async function preparePracticePassageReady() {
   } else if (selectedFirst.length) {
     const parts = []
     let words = 0
-    const targetWords = Math.max(850, (typingDuration || 1) * 35)
+    const targetWords = Math.max(180, (typingDuration || 1) * 70)
     const seenSentences = new Set()
     try {
       for (const exercise of selectedFirst) {
@@ -1100,7 +1235,7 @@ function attachTypingEngine() {
         else typingDelayedBackspaces += 1
         if (input.value.endsWith('\u200Bि')) {
           event.preventDefault()
-          input.value = input.value.slice(0, -2)
+          fastUpdateTextareaValue(input, input.value.slice(0, -2))
           input.dispatchEvent(new Event('input', { bubbles: true }))
         }
       }
@@ -1108,13 +1243,14 @@ function attachTypingEngine() {
     }
     if (event.key === 'Delete') typingDeletePresses += 1
 
-    // Automatic Hindi DevLys 010 Remington Keymapping in Practice & Speed Test
+    // Automatic Hindi DevLys 010 Remington Keymapping in Practice & Speed Test (0ms Direct Range Update)
     const isHiMode = selectedPracticeLanguage === 'hi' || /[\u0900-\u097F]/.test(typingPassage || '')
     if (isHiMode && !event.ctrlKey && !event.metaKey && !event.altKey && event.key.length === 1 && event.key !== ' ') {
       const nextVal = applyDevLysKeystrokeToText(input.value, event.key, event.shiftKey, typingPassage)
       if (nextVal !== null) {
         event.preventDefault()
-        input.value = nextVal
+        input._devlysMapped = true
+        fastUpdateTextareaValue(input, nextVal)
         input.dispatchEvent(new Event('input', { bubbles: true }))
         return
       }
@@ -1125,13 +1261,16 @@ function attachTypingEngine() {
     const started = typingKeyDownAt.get(key)
     if (started) { typingKeyHoldTotalMs += Math.max(0, Date.now() - started); typingKeyHoldSamples += 1; typingKeyDownAt.delete(key) }
   })
+  let _prevSpaceCount = 0
   input.addEventListener('input', () => {
     if (typingFinished || !typingPassage) return
     const isHiMode = selectedPracticeLanguage === 'hi' || /[\u0900-\u097F]/.test(typingPassage || '')
-    if (isHiMode) {
+    if (isHiMode && !input._devlysMapped) {
       sanitizeTrailingAsciiInHindiBox(input, typingPassage)
     }
-    typingInputValue = input.value.replace(/\u200B/g, '').slice(0, typingPassage.length)
+    input._devlysMapped = false
+    const rawVal = input.value
+    typingInputValue = rawVal.indexOf('\u200B') >= 0 ? rawVal.replace(/\u200B/g, '').slice(0, typingPassage.length) : rawVal.slice(0, typingPassage.length)
     if (!typingStartedAt && typingInputValue.length) {
       typingStartedAt = Date.now()
       typingTimer = setInterval(() => {
@@ -1139,6 +1278,7 @@ function attachTypingEngine() {
         const maxAllowedSec = Math.max(1, Math.round((Number(typingDuration) || 10) * 60))
         const elapsedSeconds = Math.max(1, Math.min(maxAllowedSec, Math.floor((Date.now() - typingStartedAt) / 1000)))
         typingRemaining = Math.max(0, maxAllowedSec - elapsedSeconds)
+        const wa = renderTypingPassage(typingInputValue)
         if (elapsedSeconds % 5 === 0 && typingSpeedSamples.at(-1)?.second !== elapsedSeconds) {
           const snap = calculateTypingStats(typingInputValue, elapsedSeconds)
           const previousSample = typingSpeedSamples.at(-1)
@@ -1149,13 +1289,48 @@ function attachTypingEngine() {
           const intervalWpm = Math.round((intervalChars / 5) * (60 / intervalSeconds))
           typingSpeedSamples.push({ second: elapsedSeconds, chars: typingInputValue.length, netWpm: intervalWpm, accuracy: snap.accuracy })
         }
-        updateTypingStats()
+        updateTypingStats(wa)
         if (typingRemaining <= 0) finishTypingTest()
       }, 1000)
     }
-    renderTypingPassage(typingInputValue)
-    updateTypingStats()
-    if (typingInputValue.length >= typingPassage.length) finishTypingTest()
+    if (typingInputValue.length >= typingPassage.length) {
+      if (_liveTypingRafId) { cancelAnimationFrame(_liveTypingRafId); _liveTypingRafId = null }
+      if (_idleAlignTimerId) { clearTimeout(_idleAlignTimerId); _idleAlignTimerId = null }
+      const wa = renderTypingPassage(typingInputValue)
+      updateTypingStats(wa)
+      finishTypingTest()
+      return
+    }
+    // Check if word boundary (Space) changed; if not, do 0ms O(1) active-word check ONLY!
+    let spaceCount = 0
+    for (let i = 0; i < typingInputValue.length; i++) {
+      const c = typingInputValue.charCodeAt(i)
+      if (c === 32 || c === 10 || c === 9) spaceCount++
+    }
+    const isWordBoundary = (spaceCount !== _prevSpaceCount) || typingInputValue.endsWith(' ')
+    _prevSpaceCount = spaceCount
+
+    if (!isWordBoundary) {
+      fastHighlightActiveWordOnly(typingInputValue)
+      if (_idleAlignTimerId) clearTimeout(_idleAlignTimerId)
+      _idleAlignTimerId = setTimeout(() => {
+        _idleAlignTimerId = null
+        if (!typingFinished) {
+          const wa = renderTypingPassage(typingInputValue)
+          updateTypingStats(wa)
+        }
+      }, 220)
+      return
+    }
+
+    if (!_liveTypingRafId) {
+      _liveTypingRafId = requestAnimationFrame(() => {
+        _liveTypingRafId = null
+        if (typingFinished) return
+        const wa = renderTypingPassage(typingInputValue)
+        updateTypingStats(wa)
+      })
+    }
   })
   const categorySelect = document.querySelector('#practice-category')
   if (categorySelect) categorySelect.addEventListener('change', () => {
@@ -1265,7 +1440,7 @@ function renderOnboarding() {
     if (!name || !/^[+0-9]{10,15}$/.test(mobile) || !exam) { error.textContent = isHi ? 'कृपया नाम, सही मोबाइल नंबर और परीक्षा भरें।' : 'Please enter your name, a valid mobile number and exam.'; return }
     const profile = { id: (globalThis.crypto?.randomUUID?.() || `ag-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`), name, mobile, exam, language: appLanguage, createdAt: new Date().toISOString(), syncStatus: 'pending' }
     profile.rollNumber = mobile
-    persistAgProfileLocally(profile)
+    localStorage.setItem('ag-user-profile', JSON.stringify(profile))
     syncUserProfileWithDisk(profile)
     const queue = (() => { try { return JSON.parse(localStorage.getItem('ag-profile-sync-queue') || '[]') } catch { return [] } })()
     if (!queue.some((item) => item.id === profile.id)) queue.push(profile)
@@ -1319,8 +1494,26 @@ function buildOnlinePortalSidebarBtnHTML(isHi = false) {
   `;
 }
 
+function enforceWhatsAppNumberOnButtons() {
+  document.querySelectorAll('a[href*="wa.me"], .support-button, .learn-whatsapp-support, .ag-wa-pill-btn').forEach((el) => {
+    if (el.id === 'ag-whatsapp-support') return
+    const txt = (el.textContent || '').trim()
+    if (txt.includes('WhatsApp') && !txt.includes('7878025556')) {
+      const span = el.querySelector('span')
+      if (span) {
+        span.textContent = 'WhatsApp Support · 7878025556'
+        span.style.display = 'inline-block'
+      } else {
+        el.textContent = '💬 WhatsApp Support · 7878025556'
+      }
+    }
+  })
+}
 
 function ensureAgWhatsAppSupport() {
+  enforceWhatsAppNumberOnButtons()
+  setTimeout(enforceWhatsAppNumberOnButtons, 60)
+  setTimeout(enforceWhatsAppNumberOnButtons, 300)
   if (document.getElementById('ag-whatsapp-support')) return
   const link = document.createElement('a')
   link.id = 'ag-whatsapp-support'
@@ -1369,13 +1562,13 @@ function renderHome() {
               `,
             )
             .join('')}
-          ${buildOnlinePortalSidebarBtnHTML(isHi)}
+          ${buildOnlinePortalSidebarBtnHTML(false)}
         </nav>
 
         <div class="sidebar-bottom sidebar-profile-bottom">
           <button type="button" class="sidebar-profile-button" data-page="profile" aria-label="Open user profile">
             <span class="profile-avatar">${escapeHtml((userProfile?.name || 'U').trim().charAt(0).toUpperCase())}</span>
-            <span class="sidebar-profile-copy"><strong>${escapeHtml(userProfile?.name || 'My Profile')}</strong><small>${isHi ? 'प्रोफ़ाइल और रिपोर्ट' : 'Profile & reports'}</small></span>
+            <span class="sidebar-profile-copy"><strong>${escapeHtml(userProfile?.name || 'My Profile')}</strong><small>Profile &amp; reports</small></span>
             <span class="profile-chevron">›</span>
           </button>
         </div>
@@ -1383,158 +1576,108 @@ function renderHome() {
 
       <main class="main-area has-ag-bg-watermarks">
         ${buildAgWatermarkGridHTML(8, "ag-bg-watermark-layer")}
-        <header class="topbar">
-          <div>
-            <span class="eyebrow">YOUR PERSONAL TYPING STUDIO</span>
-            <h1>${isHi ? `AG Typing Tutor में आपका स्वागत है, ${escapeHtml(userProfile.name)}` : `Welcome to AG Typing Tutor, ${escapeHtml(userProfile.name)}`}</h1>
+        <header class="topbar home-single-line-topbar">
+          <div class="topbar-single-line-title">
+            <h1>Welcome to AG Typing Tutor, <span class="topbar-user-name-accent">${escapeHtml(userProfile.name)}</span></h1>
           </div>
-          <div class="topbar-actions"><button class="language-switch ${!isHi ? 'active' : ''}" type="button" data-app-language="en">English</button><button class="language-switch ${isHi ? 'active' : ''}" type="button" data-app-language="hi">हिन्दी</button>${themeButton()}<a class="support-button" href="https://wa.me/7878025556" target="_blank" rel="noreferrer">WhatsApp Support · 7878025556</a><button type="button" id="check-app-update-btn" class="secondary-button" style="padding:4px 10px; font-size:12px; font-weight:700; border-radius:8px; display:inline-flex; align-items:center; gap:4px;">🔄 Update</button><span class="edition-badge">${isHi ? 'हिन्दी संस्करण' : 'ENGLISH EDITION'}</span></div>
+          <div class="topbar-actions topbar-only-three">
+            ${themeButton()}
+            <a class="ag-wa-pill-btn topbar-pill-btn" href="https://wa.me/917878025556?text=Hello%20Xtreme%20AG%20Apps%2C%20I%20need%20support%20for%20AG%20Typing%20Tutor." target="_blank" rel="noreferrer"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0"><path d="M3 21l1.65-3.8a9 9 0 1 1 3.4 2.9L3 21"/><path d="M9 10a.5.5 0 0 0 1 0V9a.5.5 0 0 0-1 0v1a5 5 0 0 0 5 5h1a.5.5 0 0 0 0-1h-1a.5.5 0 0 0 0 1"/></svg><span>WhatsApp Support · 7878025556</span></a>
+            <button type="button" id="check-app-update-btn" class="topbar-update-pill-btn">🔄 Update</button>
+          </div>
         </header>
 
-        <section class="hero">
-          <div class="hero-content">
-            <span class="hero-label">LEARN · PRACTISE · IMPROVE</span>
-            <h2>${isHi ? 'बेहतर टाइपिंग की<br />शुरुआत यहाँ से करें।' : 'Your journey to<br />better typing starts here.'}</h2>
-            <p>
-              ${isHi ? 'आत्मविश्वास बढ़ाएँ, सटीकता सुधारें और हर पाठ के साथ अपनी टाइपिंग गति बेहतर करें।' : 'Build confidence, improve accuracy and develop your typing speed, one lesson at a time.'}
-            </p>
-            <button class="primary-button" data-page="learn">
-              ${isHi ? 'सीखना शुरू करें' : 'Start Learning'} <span>→</span>
-            </button>
+        <section class="section-block exam-tile-section premium-exam-arena">
+          <div class="exam-arena-header-centered">
+            <span class="exam-arena-eyebrow">🏛️ OFFICIAL EXAM HALL &amp; ALL-RAJASTHAN LIVE RANK ARENA</span>
+            <h2>Choose your exam (RSSB LDC &amp; Daily Live)</h2>
+            <p>Select an active exam module below to launch the official MS Office 2013 &amp; Typing Exam Hall</p>
           </div>
 
-          <div class="hero-art" aria-hidden="true">
-            <div class="art-orbit orbit-one"></div>
-            <div class="art-orbit orbit-two"></div>
-            <div class="keyboard-card qwerty-hero-keyboard">
-              <div class="keyboard-top">
-                <span></span><span></span><span></span>
-                <small style="margin-left:auto;font-size:9px;font-weight:800;color:#64748b;letter-spacing:0.06em;">QWERTY KEYBOARD</small>
-              </div>
-              <div class="qwerty-rows-wrap">
-                <div class="qwerty-row qwerty-row-1">
-                  ${['Q','W','E','R','T','Y','U','I','O','P'].map(k => `<span class="${k === 'Q' || k === 'E' || k === 'I' ? 'key-highlight' : ''}">${k}</span>`).join('')}
-                </div>
-                <div class="qwerty-row qwerty-row-2">
-                  ${['A','S','D','F','G','H','J','K','L'].map(k => `<span class="${k === 'F' || k === 'J' ? 'key-highlight key-home-bump' : ''}">${k}</span>`).join('')}
-                </div>
-                <div class="qwerty-row qwerty-row-3">
-                  ${['Z','X','C','V','B','N','M'].map(k => `<span class="${k === 'C' || k === 'M' ? 'key-highlight' : ''}">${k}</span>`).join('')}
-                </div>
-                <div class="qwerty-row qwerty-row-space">
-                  <span class="qwerty-mod-key">Ctrl</span>
-                  <span class="qwerty-mod-key">Alt</span>
-                  <span class="qwerty-spacebar">SPACE</span>
-                  <span class="qwerty-mod-key">Alt</span>
-                </div>
-              </div>
-            </div>
-            <div class="floating-badge">⌨ Type smarter</div>
-          </div>
-        </section>
-
-        <section class="section-block exam-tile-section">
-          <div class="section-title">
-            <div>
-              <span class="eyebrow">${isHi ? 'परीक्षा के अनुसार तैयारी' : 'PREPARE FOR YOUR EXAM'}</span>
-              <h2>${isHi ? 'अपनी परीक्षा चुनें (RSSB LDC & Daily Live)' : 'Choose your exam (RSSB LDC & Daily Live)'}</h2>
-              <p>${isHi ? 'वर्तमान में RSSB LDC (80 Full Tests · MS Office 2013) एवं Daily 8:00 AM Live Test सक्रिय हैं। अन्य परीक्षाएँ जल्द आ रही हैं।' : 'RSSB LDC (80 Full Tests · MS Office 2013) and Daily 8:00 AM Live Rank Test are active. Other exams are coming soon.'}</p>
-            </div>
-          </div>
           <div class="exam-layout-rows">
-            <!-- Row 1: Two Large Featured RSSB LDC Tiles -->
+            <!-- Row 1: Two Large Featured Premium RSSB LDC Tiles -->
             <div class="exam-featured-row-2">
-              <button type="button" class="exam-tile exam-tile-large-ldc exam-tile-active-primary" data-exam-tile="RSSB LDC">
-                <span class="exam-tile-badge badge-active">✓ ACTIVE · 80 TESTS</span>
+              <button type="button" class="exam-tile exam-tile-large-ldc premium-tile-royal" data-exam-tile="RSSB LDC">
+                <div class="premium-tile-glow"></div>
+                <div class="premium-tile-top-row">
+                  <span class="exam-tile-badge badge-active-lux">✓ ACTIVE · 80 FULL MOCK TESTS</span>
+                  <span class="premium-tile-code">PHASE-II EXAM HALL</span>
+                </div>
                 <div class="exam-tile-large-head">
-                  <span class="exam-tile-large-icon">🏛️</span>
+                  <span class="exam-tile-large-icon lux-icon-box">🏛️</span>
                   <div>
                     <strong>RSSB LDC (Exam Hall)</strong>
-                    <p>${isHi ? '80 फुल मॉक टेस्ट (4 पेपर्स: हिन्दी + अंग्रेजी + MS Word 2013 + MS Excel 2013)' : '80 Full Mock Tests (4 Papers: Hindi + English + MS Word 2013 + MS Excel 2013)'}</p>
+                    <p>80 Full Mock Tests (4 Papers: Hindi Typing + English Typing + MS Word 2013 + MS Excel 2013)</p>
                   </div>
                 </div>
-                <small class="exam-tile-cta-blue">${isHi ? 'अभी परीक्षा हॉल शुरू करें (MS Office 2013 पैटर्न) →' : 'Launch Official Exam Hall (MS Office 2013 Pattern) →'}</small>
+                <div class="premium-tile-chips">
+                  <span>🇮🇳 Hindi DevLys 010</span>
+                  <span>🇬🇧 English Standard</span>
+                  <span>📝 Word 2013 (15 Qs)</span>
+                  <span>📊 Excel 2013 (15 Qs)</span>
+                </div>
+                <div class="premium-tile-cta cta-royal">
+                  <span>Launch Official Exam Hall (MS Office 2013 Pattern)</span>
+                  <span class="cta-arrow">→</span>
+                </div>
               </button>
 
-              <button type="button" class="exam-tile exam-tile-large-ldc exam-tile-daily-live" data-exam-tile="RSSB LDC DAILY LIVE">
-                <span class="exam-tile-badge badge-live">🔴 LIVE 8:00 AM · RANK</span>
+              <button type="button" class="exam-tile exam-tile-large-ldc premium-tile-crimson" data-exam-tile="RSSB LDC DAILY LIVE">
+                <div class="premium-tile-glow"></div>
+                <div class="premium-tile-top-row">
+                  <span class="exam-tile-badge badge-live-lux">🔴 LIVE 8:00 AM · ALL-RAJASTHAN RANK</span>
+                  <span class="premium-tile-code">70-DAY SCHEDULE</span>
+                </div>
                 <div class="exam-tile-large-head">
-                  <span class="exam-tile-large-icon">🔥</span>
+                  <span class="exam-tile-large-icon lux-icon-box-crimson">🔥</span>
                   <div>
                     <strong>RSSB LDC Daily Live Test</strong>
-                    <p>${isHi ? 'रोज़ सुबह 8:00 बजे नया लाइव टेस्ट · चारों पेपर्स के नंबर और Live All-Rajasthan Rank' : 'Daily 8:00 AM Live Test · All 4 Paper Marks & Live All-Rajasthan Rank Leaderboard'}</p>
+                    <p>Daily 8:00 AM IST New Test · All 4 Paper Marks &amp; Live All-Rajasthan Rank Leaderboard</p>
                   </div>
                 </div>
-                <small class="exam-tile-cta-red">${isHi ? 'डेली लाइव टेस्ट एवं रैंक लीडरबोर्ड खोलें →' : 'Open Daily Live Test & Rank Leaderboard →'}</small>
+                <div class="premium-tile-chips chips-crimson">
+                  <span>⏰ Daily 08:00 AM IST</span>
+                  <span>🏆 Live Rank Table</span>
+                  <span>📄 Unique 600+ Words</span>
+                  <span>🔒 Privacy Protected</span>
+                </div>
+                <div class="premium-tile-cta cta-crimson">
+                  <span>Open Daily Live Test &amp; Rank Leaderboard</span>
+                  <span class="cta-arrow">→</span>
+                </div>
               </button>
             </div>
 
-            <!-- Row 2: Only High Court LDC, SSC, and RRB -->
+            <!-- Row 2: High Court LDC, SSC, and RRB in Premium Cards -->
             <div class="exam-coming-row-3">
               ${[
-                ['Rajasthan High Court LDC', '⚖️'],
-                ['SSC', '🎯'],
-                ['RRB', '🚆']
-              ].map(([name, icon]) => `
-                <button type="button" class="exam-tile exam-tile-coming-soon" data-exam-tile="${escapeHtml(name)}">
-                  <span class="exam-tile-badge badge-soon">⏳ Coming Soon</span>
-                  <span class="exam-tile-icon">${icon}</span>
+                ['Rajasthan High Court LDC', '⚖️', 'Hindi & English Speed + Efficiency Test'],
+                ['SSC', '🎯', 'SSC CGL / CHSL Skill & Dest Typing Test'],
+                ['RRB', '🚆', 'Railway NTPC Typing Skill Assessment']
+              ].map(([name, icon, sub]) => `
+                <button type="button" class="exam-tile exam-tile-coming-soon premium-coming-card" data-exam-tile="${escapeHtml(name)}">
+                  <div class="premium-coming-top">
+                    <span class="premium-coming-icon">${icon}</span>
+                    <span class="exam-tile-badge badge-soon-lux">⏳ Coming Soon</span>
+                  </div>
                   <strong>${escapeHtml(name)}</strong>
-                  <small class="exam-tile-whatsapp-note">Coming Soon, Request on WhatsApp →</small>
+                  <p class="premium-coming-sub">${escapeHtml(sub)}</p>
+                  <small class="exam-tile-whatsapp-note">💬 Coming Soon, Request on WhatsApp →</small>
                 </button>
               `).join('')}
             </div>
 
-            <!-- Row 3: Single Other Exams Tile -->
+            <!-- Row 3: Single Other Exams Wide Premium Tile -->
             <div class="exam-other-row-1">
-              <button type="button" class="exam-tile exam-tile-coming-soon exam-tile-other-wide" data-exam-tile="Other Exams">
-                <span class="exam-tile-badge badge-soon">⏳ Coming Soon</span>
-                <span class="exam-tile-icon">＋</span>
-                <div>
-                  <strong>Other Exams</strong>
-                  <small class="exam-tile-whatsapp-note">Coming Soon, Request on WhatsApp (WhatsApp: 7878025556) →</small>
+              <button type="button" class="exam-tile exam-tile-coming-soon exam-tile-other-wide premium-other-banner" data-exam-tile="Other Exams">
+                <span class="premium-coming-icon">✨</span>
+                <div class="premium-other-copy">
+                  <strong>Other Exams (DSSSB, KVS / NVS, EMRS, State LDC &amp; Custom Modules)</strong>
+                  <small class="exam-tile-whatsapp-note">💬 Coming Soon, Request on WhatsApp (WhatsApp: 7878025556) →</small>
                 </div>
+                <span class="exam-tile-badge badge-soon-lux" style="position:static;margin-left:auto;">⏳ Coming Soon</span>
               </button>
             </div>
-          </div>
-
-          <div style="margin-top:14px; padding:14px 18px; background:linear-gradient(90deg,#f0fdf4,#eff6ff); border:1px solid #bbf7d0; border-radius:14px; display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:12px;">
-            <div style="font-size:13px; color:#1e293b; line-height:1.55;">
-              <strong>💬 ${isHi ? 'क्या आपको किसी अन्य परीक्षा या व्यक्तिगत प्रैक्टिस के लिए कस्टम टेस्ट चाहिए?' : 'Need a Custom Exam Pattern or Personal Practice Module?'}</strong><br>
-              <span>${isHi ? 'अन्य सभी परीक्षाएँ जल्द आ रही हैं (Coming Soon)। यदि आपको किसी विशेष एग्जाम के लिए पर्सनल पैटर्न बनवाना हो तो हमें WhatsApp करें — अगले Auto-Update में वह सीधे आपके ऐप में जुड़ जाएगा!' : 'Other exams are Coming Soon. If you need a specific exam pattern built personally for you, message us on WhatsApp and receive it directly in the next Auto-Update!'}</span>
-            </div>
-            <a href="https://wa.me/917878025556?text=Hello%20Xtreme%20AG%20Apps%2C%20mujhe%20AG%20Typing%20Tutor%20me%20custom%20exam%20pattern%20chahiye." target="_blank" rel="noreferrer" class="primary-button" style="background:#16a34a; border-color:#15803d; padding:9px 16px; font-size:13px; font-weight:800; border-radius:10px; text-decoration:none; white-space:nowrap;">💬 WhatsApp करें · 7878025556</a>
-          </div>
-        </section>
-
-        <section class="section-block">
-          <div class="section-title">
-            <div>
-              <span class="eyebrow">YOUR WORKSPACE</span>
-              <h2>What would you like to do?</h2>
-              <p>Choose an activity to get started.</p>
-            </div>
-          </div>
-
-          <div class="feature-grid">
-            ${sections
-              .map(
-                (item) => `
-                  <button class="feature-card" data-page="${item.id}">
-                    <span class="feature-icon icon-${item.id}">
-                      ${item.icon}
-                    </span>
-                    <span class="feature-title">${item.title}</span>
-                    <span class="feature-description">
-                      ${item.description}
-                    </span>
-                    <span class="feature-link">
-                      ${item.label} <span>→</span>
-                    </span>
-                  </button>
-                `,
-              )
-              .join('')}
           </div>
         </section>
 
@@ -1548,7 +1691,6 @@ function renderHome() {
 
   attachNavigation()
   attachThemeToggle()
-  document.querySelectorAll('[data-app-language]').forEach((button) => button.addEventListener('click', () => setAppLanguage(button.dataset.appLanguage)))
   document.querySelectorAll('[data-exam-tile]').forEach((button) => button.addEventListener('click', () => {
     selectedExam = button.dataset.examTile
     if (selectedExam === 'RSSB LDC') {
@@ -1583,13 +1725,33 @@ function renderPracticeSidebar() {
 }
 
 function attachPracticeSidebar() {
-  document.querySelector('#practice-back-home')?.addEventListener('click', () => renderSection('home'))
-  document.querySelectorAll('[data-exercise-id]').forEach((button) => button.addEventListener('click', () => {
+  document.querySelector('#practice-back-home')?.addEventListener('click', (e) => {
+    e.preventDefault()
+    stopTypingTimer()
+    document.querySelector('#typing-fullscreen')?.remove()
+    renderSection('home')
+  })
+  document.querySelectorAll('[data-exercise-id]').forEach((button) => button.addEventListener('click', (e) => {
+    e.preventDefault()
+    const prevScroll = document.querySelector('.practice-exercise-list')?.scrollTop || 0
     selectedExerciseId = button.dataset.exerciseId
     customPassage = selectedExerciseId === 'custom-1' ? customPassage : ''
-    renderSection('practice')
+    typingPassage = ''
+    typingInputValue = ''
+    typingStartedAt = null
+    typingFinished = false
+    stopTypingTimer()
+    document.querySelector('#typing-fullscreen')?.remove()
+    const targetSec = selectedPracticeLanguage === 'hi' ? 'practice-hi' : 'practice-en'
+    renderSection(targetSec)
+    const listEl = document.querySelector('.practice-exercise-list')
+    if (listEl) listEl.scrollTop = prevScroll
+    setTimeout(() => {
+      document.querySelector('#typing-input')?.focus({ preventScroll: true })
+    }, 30)
   }))
-  document.querySelector('#practice-custom-top')?.addEventListener('click', () => {
+  document.querySelector('#practice-custom-top')?.addEventListener('click', (e) => {
+    e.preventDefault()
     const panel = document.querySelector('#custom-upload-panel')
     if (panel) panel.classList.toggle('custom-upload-open')
     if (panel?.classList.contains('custom-upload-open')) {
@@ -1614,7 +1776,7 @@ function openTypingFullscreen() {
   const modal = document.createElement('div')
   modal.id = 'typing-fullscreen'
   modal.className = 'typing-fullscreen'
-  modal.innerHTML = `<header class="typing-fullscreen-header"><div class="fullscreen-brand"><strong>AG Typing Tutor</strong><span id="fullscreen-exercise-title">${escapeHtml(customPassage ? 'Custom Upload · Exercise 1' : (practiceExerciseData.find(x => String(x.id) === String(selectedExerciseId))?.title || 'Typing Exercise'))}</span></div>
+  modal.innerHTML = `<header class="typing-fullscreen-header"><div class="fullscreen-brand"><div style="display:flex;align-items:center;gap:10px;"><button type="button" id="typing-fullscreen-back" class="secondary-button" style="padding:5px 11px;font-size:12.5px;font-weight:800;border-radius:8px;cursor:pointer;">← Back</button><strong>AG Typing Tutor</strong></div><span id="fullscreen-exercise-title">${escapeHtml(customPassage ? 'Custom Upload · Exercise 1' : (practiceExerciseData.find(x => String(x.id) === String(selectedExerciseId))?.title || 'Typing Exercise'))}</span></div>
     <div class="fullscreen-options">
       <label><input type="checkbox" data-practice-option="backspace" ${practiceOptions.backspace ? 'checked' : ''}> Allow Backspace</label>
       <label><input type="checkbox" data-practice-option="textHighlight" ${practiceOptions.textHighlight ? 'checked' : ''}> Text highlight</label>
@@ -1625,6 +1787,12 @@ function openTypingFullscreen() {
       <div class="typing-font-controls" role="group" aria-label="Passage font size"><span>Text size</span><button type="button" id="typing-font-decrease" aria-label="Decrease passage font size">A−</button><button type="button" id="typing-font-increase" aria-label="Increase passage font size">A+</button></div><label class="typing-method-control"><span>WPM method</span><select id="typing-wpm-method"><option value="standard" ${typingWpmMethod === 'standard' ? 'selected' : ''}>5-char standard</option><option value="words" ${typingWpmMethod === 'words' ? 'selected' : ''}>Word-based</option></select></label><label class="typing-target-control"><span>Target WPM</span><input id="typing-target-wpm" type="number" min="0" max="250" step="1" value="${typingTargetWpm}" aria-label="Target typing speed"></label><strong class="fullscreen-countdown" id="fullscreen-countdown">${Math.floor(typingRemaining / 60)}:${String(typingRemaining % 60).padStart(2, '0')}</strong></div></header>
       <main class="typing-fullscreen-main"><section class="typing-fullscreen-workarea"><div class="typing-fullscreen-dashboard"><div class="typing-main-column"><div id="typing-fullscreen-passage"></div><div id="typing-fullscreen-card"></div></div><aside class="typing-right-panel"><h3>Live performance</h3><div class="speedometer-card"><svg class="speedometer-svg" viewBox="0 0 220 135" role="img" aria-label="Live net typing speed"><path class="speedometer-track" d="M 34 116 A 86 86 0 0 1 206 116"/><path id="speedometer-progress" class="speedometer-progress" d="M 34 116 A 86 86 0 0 1 206 116"/><g class="speedometer-ticks"><text x="27" y="119">0</text><text x="43" y="77">10</text><text x="72" y="43">20</text><text x="120" y="29">30</text><text x="168" y="43">40</text><text x="197" y="77">50</text><text x="213" y="119">60+</text></g><g id="speedometer-needle" class="speedometer-needle"><line x1="120" y1="116" x2="120" y2="51"/><circle cx="120" cy="116" r="6"/></g><text id="speedometer-net" x="120" y="94" text-anchor="middle">0</text><text x="120" y="111" text-anchor="middle" class="speedometer-unit">NET WPM</text></svg><div class="speedometer-sub">Gross <strong id="speedometer-gross">0</strong> WPM</div><button type="button" class="secondary-button speedometer-toggle" id="speedometer-toggle">Hide speedometer</button></div><div id="typing-fullscreen-stats"></div><div id="typing-fullscreen-legend"></div></aside></div></section></main>`
   document.body.appendChild(modal)
+  modal.querySelector('#typing-fullscreen-back')?.addEventListener('click', () => {
+    stopTypingTimer()
+    modal.remove()
+    document.querySelector('.practice-exercise-sidebar')?.classList.remove('is-hidden-during-test')
+    renderSection(selectedPracticeLanguage === 'hi' ? 'practice-hi' : 'practice-en')
+  })
   let passageFontSize = 17
   const applyPassageFontSize = () => { const passage = modal.querySelector('#typing-passage'); if (passage) passage.style.fontSize = `${passageFontSize}px` }
   modal.querySelector('#typing-font-decrease')?.addEventListener('click', () => { passageFontSize = Math.max(13, passageFontSize - 1); applyPassageFontSize() })
@@ -1683,7 +1851,49 @@ function attachTypingReviewPractice() {
 
 function renderSection(page) {
   if (page === 'performance' || page === 'settings') page = 'profile'
-  if (page === 'practice' || page === 'speed') { selectedPracticeLanguage = appLanguage === 'hi' ? 'hi' : 'en'; selectedPracticeCategory = 'All topics'; if (!practiceExerciseData.some((item) => String(item.id) === String(selectedExerciseId) && item.language === selectedPracticeLanguage)) selectedExerciseId = practiceExerciseData.find((item) => item.language === selectedPracticeLanguage)?.id || (selectedPracticeLanguage === 'hi' ? 'hi-001' : 'en-001') }
+  if (page === 'learn') {
+    page = appLanguage === 'hi' ? 'learn-hi' : 'learn-en'
+  }
+  if (page === 'practice' || page === 'speed') {
+    page = selectedPracticeLanguage === 'hi' ? 'practice-hi' : 'practice-en'
+  }
+
+  if (page === 'learn-en') {
+    appLanguage = 'en'
+    localStorage.setItem('ag-language', 'en')
+  } else if (page === 'learn-hi') {
+    appLanguage = 'hi'
+    localStorage.setItem('ag-language', 'hi')
+  } else if (page === 'practice-en') {
+    const langChanged = selectedPracticeLanguage !== 'en'
+    appLanguage = 'en'
+    selectedPracticeLanguage = 'en'
+    localStorage.setItem('ag-language', 'en')
+    selectedPracticeCategory = 'All topics'
+    if (langChanged || !practiceExerciseData.some((item) => String(item.id) === String(selectedExerciseId) && item.language === 'en')) {
+      selectedExerciseId = practiceExerciseData.find((item) => item.language === 'en')?.id || 'en-001'
+      typingPassage = ''
+      typingInputValue = ''
+      typingStartedAt = null
+      typingFinished = false
+      stopTypingTimer()
+    }
+  } else if (page === 'practice-hi') {
+    const langChanged = selectedPracticeLanguage !== 'hi'
+    appLanguage = 'hi'
+    selectedPracticeLanguage = 'hi'
+    localStorage.setItem('ag-language', 'hi')
+    selectedPracticeCategory = 'All topics'
+    if (langChanged || !practiceExerciseData.some((item) => String(item.id) === String(selectedExerciseId) && item.language === 'hi')) {
+      selectedExerciseId = practiceExerciseData.find((item) => item.language === 'hi')?.id || 'hi-001'
+      typingPassage = ''
+      typingInputValue = ''
+      typingStartedAt = null
+      typingFinished = false
+      stopTypingTimer()
+    }
+  }
+
   currentSection = page
 
   if (page === 'home') {
@@ -1700,12 +1910,14 @@ function renderSection(page) {
 
   let content = ''
 
-  if (page === 'learn') {
+  const isLearnPage = page === 'learn-en' || page === 'learn-hi'
+  const isPracticePage = page === 'practice-en' || page === 'practice-hi'
+  if (isLearnPage) {
     content = renderLessons(appLanguage)
-  } else if (page === 'practice' || page === 'speed') {
+  } else if (isPracticePage) {
     content = `
       <div class="practice-layout">
-      ${page === 'practice' ? renderPracticeSidebar() : ''}
+      ${renderPracticeSidebar()}
       <div class="typing-workspace" id="typing-workspace">
         <div class="typing-setup notice-card">
           <span class="large-icon">${page === 'speed' ? '⚡' : '⌨️'}</span>
@@ -1735,7 +1947,7 @@ function renderSection(page) {
             `).join('')}
           </div>
           <button class="primary-button typing-start" id="typing-start">${typingFinished ? 'Try Again' : 'Start Typing Test'} <span>→</span></button>
-          <p class="helper-text" id="typing-status">Select any exercise from the list, choose a duration and start the test.</p><div class="last-attempt-summary" id="last-attempt-summary">${(() => { const prev = getLastExerciseAttempt(customPassage ? 'custom-1' : selectedExerciseId); return prev ? `<strong>Last attempt:</strong> ${prev.netWpm ?? prev.wpm} net WPM · ${prev.accuracy}% accuracy · ${prev.errors} errors` : 'No previous attempt for this exercise yet.'; })()}</div>
+          <p class="helper-text" id="typing-status" style="font-weight:700;color:#1d4ed8;">Selected: ${escapeHtml(customPassage ? "Custom Upload · Exercise 1" : (practiceExerciseData.find((x) => String(x.id) === String(selectedExerciseId))?.title || "Exercise 1"))} — Type directly below or click Start Typing Test for fullscreen.</p><div class="last-attempt-summary" id="last-attempt-summary">${(() => { const prev = getLastExerciseAttempt(customPassage ? 'custom-1' : selectedExerciseId); return prev ? `<strong>Last attempt:</strong> ${prev.netWpm ?? prev.wpm} net WPM · ${prev.accuracy}% accuracy · ${prev.errors} errors` : 'No previous attempt for this exercise yet.'; })()}</div>
         </div>
         <div class="typing-stats" aria-live="polite">
           <div class="typing-stat"><span>Time left</span><strong id="typing-time">${typingDuration}:00</strong></div>
@@ -1846,7 +2058,7 @@ function renderSection(page) {
   }
 
   app.innerHTML = `
-    <div class="app-layout ${page === 'practice' ? 'practice-mode' : ''}">
+    <div class="app-layout ${(page === 'practice-en' || page === 'practice-hi') ? 'practice-mode' : ''}">
       <aside class="sidebar">
         <a class="brand" href="#" data-page="home">
           <span class="brand-logo">AG</span>
@@ -1886,15 +2098,14 @@ function renderSection(page) {
         </div>
       </aside>
 
-      <main class="main-area has-ag-bg-watermarks">
-        ${buildAgWatermarkGridHTML(8, "ag-bg-watermark-layer")}
+      <main class="main-area">
         <header class="topbar">
           <div>
             <button class="back-button" data-page="home">← Home</button>
             <h1>${section.title}</h1>
             <p>${section.description}</p>
           </div>
-          <div class="topbar-actions">${themeButton()}<button type="button" id="check-app-update-btn" class="secondary-button" style="padding:4px 10px; font-size:12px; font-weight:700; border-radius:8px; display:inline-flex; align-items:center; gap:4px;">🔄 Update</button><span class="edition-badge">AG TYPING TUTOR</span></div>
+          <div class="topbar-actions topbar-only-three">${themeButton()}<a class="ag-wa-pill-btn topbar-pill-btn" href="https://wa.me/917878025556?text=Hello%20Xtreme%20AG%20Apps%2C%20I%20need%20support%20for%20AG%20Typing%20Tutor." target="_blank" rel="noreferrer"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0"><path d="M3 21l1.65-3.8a9 9 0 1 1 3.4 2.9L3 21"/><path d="M9 10a.5.5 0 0 0 1 0V9a.5.5 0 0 0-1 0v1a5 5 0 0 0 5 5h1a.5.5 0 0 0 0-1h-1a.5.5 0 0 0 0 1"/></svg><span>WhatsApp Support · 7878025556</span></a><button type="button" id="check-app-update-btn" class="topbar-update-pill-btn">🔄 Update</button></div>
         </header>
 
         <section class="section-page">
@@ -1937,8 +2148,8 @@ function attachSectionActions() {
   document.querySelectorAll('[data-profile-report-id]').forEach((button) => button.addEventListener('click', () => { const list = getTypingHistory(); const result = button.dataset.profileReportId ? list.find((item) => String(item.id || '') === button.dataset.profileReportId) : list[Number(button.dataset.profileReportIndex)]; const target = document.querySelector('#profile-saved-report'); if (!result || !target) return; const stats = { netWpm: result.netWpm ?? result.wpm ?? 0, grossWpm: result.grossWpm ?? result.wpm ?? 0, accuracy: result.accuracy ?? 0, errors: result.errors ?? 0, correct: result.correct ?? 0, typed: result.typed ?? 0, completion: result.completion ?? 0, errorRate: result.errorRate ?? 0 }; target.innerHTML = `<div class="typing-result saved-report">${buildDetailedReportHTML(result, stats)}</div>`; target.querySelector('#typing-result-print')?.addEventListener('click', () => window.print()); target.scrollIntoView({behavior:'smooth',block:'start'}) }))
   document.querySelector('#clear-game-history')?.addEventListener('click', () => { localStorage.removeItem('ag-typing-game-history'); renderSection('performance') })
   attachTypingEngine()
-    if (currentSection === 'practice') attachPracticeSidebar()
-  bindLessonActions(() => renderSection('learn'))
+    if (currentSection === 'practice' || currentSection === 'practice-en' || currentSection === 'practice-hi') attachPracticeSidebar()
+  bindLessonActions(() => renderSection(currentSection))
   bindGameActions()
 
   const examSelect = document.querySelector('#exam-select')
@@ -8252,6 +8463,7 @@ function renderRssbKeyboardCheckScreen(spec) {
   stopRssbExamTimer()
   rssbExamState.stage = 'keyboard-check'
   rssbExamState.secondsLeft = 120
+  rssbExamState.stageStartedAt = Date.now()
   rssbExamState.kbCheckLang = 'en'
 
   const root = ensureRssbExamOverlay()
@@ -8364,8 +8576,7 @@ function renderRssbKeyboardCheckScreen(spec) {
   root.querySelector('#rssb-skip-practice-btn')?.addEventListener('click', startPaper1)
 
   rssbExamState.timer = setInterval(() => {
-    const realElapsed = Math.min(600, Math.max(0, Math.floor((Date.now() - rssbExamState.stageStartedAt) / 1000)))
-    rssbExamState.secondsLeft = Math.max(0, 600 - realElapsed)
+    rssbExamState.secondsLeft = Math.max(0, rssbExamState.secondsLeft - 1)
     const formatted = formatRssbClock(rssbExamState.secondsLeft)
     const t1 = root.querySelector('#rssb-kb-timer')
     const t2 = root.querySelector('#rssb-kb-timer-inline')
@@ -8564,26 +8775,33 @@ async function renderRssbTypingSpeedStage(spec, lang) {
       const nextVal = applyDevLysKeystrokeToText(inputEl.value, rawKey, event.shiftKey, passage)
       if (nextVal !== null) {
         event.preventDefault()
-        inputEl.value = nextVal
-        rssbExamState.typingBuffer = inputEl.value.replace(/\u200B/g, '')
-        lockCursorToEnd()
-        const ratio = Math.min(1, rssbExamState.typingBuffer.length / Math.max(1, passage.length))
-        if (passageBox) {
-          passageBox.scrollTop = Math.max(0, (passageBox.scrollHeight - passageBox.clientHeight) * ratio)
-        }
+        inputEl._devlysMapped = true
+        fastUpdateTextareaValue(inputEl, nextVal)
+        inputEl.dispatchEvent(new Event('input', { bubbles: true }))
       }
     } else if (event.key === ' ') {
       rssbExamState.lastPhysicalKey = ' '
     }
   })
 
-  inputEl?.addEventListener('input', () => {
-    if (isHi) sanitizeTrailingAsciiInHindiBox(inputEl, passage)
-    rssbExamState.typingBuffer = inputEl.value.replace(/\u200B/g, '')
-    lockCursorToEnd()
-    const ratio = Math.min(1, inputEl.value.length / Math.max(1, passage.length))
-    if (passageBox) {
-      passageBox.scrollTop = Math.max(0, (passageBox.scrollHeight - passageBox.clientHeight) * ratio)
+  let rssbScrollRaf = null
+  inputEl?.addEventListener('input', (ev) => {
+    if (isHi && !inputEl._devlysMapped) {
+      sanitizeTrailingAsciiInHindiBox(inputEl, passage)
+    }
+    inputEl._devlysMapped = false
+    const raw = inputEl.value
+    rssbExamState.typingBuffer = raw
+    // Only auto-scroll passage on word boundaries (Space) so typing characters has 0ms reflow
+    if ((ev?.data === ' ' || raw.endsWith(' ')) && !rssbScrollRaf && passageBox) {
+      rssbScrollRaf = requestAnimationFrame(() => {
+        rssbScrollRaf = null
+        const ratio = Math.min(1, (inputEl?.value.length || 0) / Math.max(1, passage.length))
+        const desired = Math.max(0, (passageBox.scrollHeight - passageBox.clientHeight) * ratio)
+        if (Math.abs(passageBox.scrollTop - desired) > 28) {
+          passageBox.scrollTop = desired
+        }
+      })
     }
   })
 
@@ -8597,7 +8815,7 @@ async function renderRssbTypingSpeedStage(spec, lang) {
       exerciseId: isHi ? spec.hindiTypingId : spec.englishTypingId,
       exerciseNo: spec.typingExNo,
       passage,
-      typedText: inputEl ? inputEl.value : rssbExamState.typingBuffer,
+      typedText: (inputEl ? inputEl.value : rssbExamState.typingBuffer).replace(/\u200B/g, ''),
       elapsedSeconds: elapsed,
       keystrokes: rssbExamState.typingKeystrokes,
       blockedBackspaces: rssbExamState.blockedBackspaces,
@@ -9349,10 +9567,10 @@ try {
 loadPracticeExerciseData().then((exercises) => {
   practiceExerciseData = exercises
   selectedExerciseId = exercises.find((item) => item.language === 'en')?.id || 'en-001'
-  if (currentSection === 'practice') renderSection('practice')
+  if (currentSection === 'practice-en' || currentSection === 'practice-hi' || currentSection === 'practice') renderSection(currentSection)
 }).catch((error) => {
   console.error('Failed to load typing exercises:', error)
-  if (currentSection === 'practice') {
+  if (currentSection === 'practice' || currentSection === 'practice-en' || currentSection === 'practice-hi') {
     const status = document.querySelector('#typing-status')
     if (status) status.textContent = `Exercise list could not be loaded: ${error.message || error}`
   }
