@@ -335,10 +335,23 @@ let appLanguage = localStorage.getItem('ag-language') === 'hi' ? 'hi' : 'en'
 let userProfile = null
 try {
   const parsed = JSON.parse(localStorage.getItem('ag-user-profile') || 'null')
-  if (parsed && parsed.name && parsed.id !== 'ag-default-admin') {
+  if (parsed && typeof parsed === 'object' && String(parsed.name || '').trim() && parsed.id !== 'ag-default-admin') {
     userProfile = parsed
   }
 } catch { userProfile = null }
+
+// Keep the completed profile on this browser/device so reopening the site does not
+// ask for registration again. Cross-device sync requires a real shared backend/account.
+function persistAgProfileLocally(profile) {
+  if (!profile || !String(profile.name || '').trim()) return false
+  try {
+    localStorage.setItem('ag-user-profile', JSON.stringify(profile))
+    return true
+  } catch (error) {
+    console.warn('Could not persist AG profile in this browser:', error)
+    return false
+  }
+}
 
 function getRssbCandidateName() {
   return (userProfile && userProfile.name && userProfile.id !== 'ag-default-admin') ? userProfile.name : 'Candidate'
@@ -378,7 +391,8 @@ async function syncUserProfileWithDisk(profileToSave = null) {
         if (diskProf && diskProf.name && diskProf.id !== 'ag-default-admin') {
           userProfile = diskProf
           localStorage.setItem('ag-user-profile', JSON.stringify(diskProf))
-          if (currentSection === 'home') renderHome()
+          if (currentSection === 'home') ensureAgWhatsAppSupport()
+renderHome()
         }
       }
     }
@@ -1251,7 +1265,7 @@ function renderOnboarding() {
     if (!name || !/^[+0-9]{10,15}$/.test(mobile) || !exam) { error.textContent = isHi ? 'कृपया नाम, सही मोबाइल नंबर और परीक्षा भरें।' : 'Please enter your name, a valid mobile number and exam.'; return }
     const profile = { id: (globalThis.crypto?.randomUUID?.() || `ag-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`), name, mobile, exam, language: appLanguage, createdAt: new Date().toISOString(), syncStatus: 'pending' }
     profile.rollNumber = mobile
-    localStorage.setItem('ag-user-profile', JSON.stringify(profile))
+    persistAgProfileLocally(profile)
     syncUserProfileWithDisk(profile)
     const queue = (() => { try { return JSON.parse(localStorage.getItem('ag-profile-sync-queue') || '[]') } catch { return [] } })()
     if (!queue.some((item) => item.id === profile.id)) queue.push(profile)
@@ -1305,7 +1319,28 @@ function buildOnlinePortalSidebarBtnHTML(isHi = false) {
   `;
 }
 
+
+function ensureAgWhatsAppSupport() {
+  if (document.getElementById('ag-whatsapp-support')) return
+  const link = document.createElement('a')
+  link.id = 'ag-whatsapp-support'
+  link.href = 'https://wa.me/917878025556?text=Hello%20Xtreme%20AG%20Apps%2C%20I%20need%20support%20for%20AG%20Typing%20Tutor.'
+  link.target = '_blank'
+  link.rel = 'noopener noreferrer'
+  link.setAttribute('aria-label', 'WhatsApp support at 7878025556')
+  link.innerHTML = '<span style="display:grid;place-items:center;width:25px;height:25px;border-radius:50%;background:#ffffff24;font-size:17px">✆</span><span style="display:flex;flex-direction:column;gap:3px"><strong>WhatsApp Support</strong><small style="font-size:12px;font-weight:600;opacity:.95">7878025556</small></span>'
+  Object.assign(link.style, {
+    position:'fixed', right:'16px', bottom:'16px', zIndex:'99999',
+    display:'flex', alignItems:'center', gap:'10px', padding:'11px 15px',
+    borderRadius:'999px', background:'#168447', color:'#fff',
+    boxShadow:'0 8px 24px #102b1b35', font:'700 14px/1.2 system-ui,sans-serif',
+    textDecoration:'none', border:'1px solid #ffffff35'
+  })
+  document.body.appendChild(link)
+}
+
 function renderHome() {
+  ensureAgWhatsAppSupport()
   if (!userProfile) { renderOnboarding(); return }
   const isHi = appLanguage === 'hi'
   app.innerHTML = `

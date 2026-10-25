@@ -1,0 +1,10 @@
+AG Typing Tutor update
+
+Changes:
+1. Home page and online practice app now show a WhatsApp Support button with 7878025556.
+2. The button opens WhatsApp chat to +91 7878025556 with a prefilled support message.
+3. Profile save logic is made explicit and persistent in localStorage on the same browser/device.
+
+Important:
+- This website is hosted as a static GitHub Pages site. localStorage persists on the same browser/device and does not synchronize registration data between Windows and Mac or between different browsers.
+- True cross-device profile sync requires a shared backend and a sign-in/identity method. The existing /__ag_profile endpoint is not provided by GitHub Pages, so it cannot be relied on for cross-device sync.
