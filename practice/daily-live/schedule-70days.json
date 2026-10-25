@@ -1,0 +1,1339 @@
+{
+  "startDateIST": "2026-10-25",
+  "totalDays": 70,
+  "unlockTimeIST": "08:00",
+  "enforce8AMSchedule": true,
+  "leaderboardWebhookUrl": "",
+  "days": [
+    {
+      "dayNumber": 1,
+      "date": "2026-10-25",
+      "unlockTimeIST": "08:00",
+      "enforce8AMSchedule": true,
+      "title": "RSSB LDC Daily Live All-Rajasthan Test — 2026-10-25",
+      "hindiWords": 789,
+      "englishWords": 679,
+      "efficiency1": {
+        "module": "word",
+        "language": "hi",
+        "fileNo": 1
+      },
+      "efficiency2": {
+        "module": "excel",
+        "language": "en",
+        "fileNo": 1
+      }
+    },
+    {
+      "dayNumber": 2,
+      "date": "2026-10-26",
+      "unlockTimeIST": "08:00",
+      "enforce8AMSchedule": true,
+      "title": "RSSB LDC Daily Live All-Rajasthan Test — 2026-10-26",
+      "hindiWords": 790,
+      "englishWords": 677,
+      "efficiency1": {
+        "module": "word",
+        "language": "hi",
+        "fileNo": 2
+      },
+      "efficiency2": {
+        "module": "excel",
+        "language": "en",
+        "fileNo": 2
+      }
+    },
+    {
+      "dayNumber": 3,
+      "date": "2026-10-27",
+      "unlockTimeIST": "08:00",
+      "enforce8AMSchedule": true,
+      "title": "RSSB LDC Daily Live All-Rajasthan Test — 2026-10-27",
+      "hindiWords": 788,
+      "englishWords": 676,
+      "efficiency1": {
+        "module": "word",
+        "language": "hi",
+        "fileNo": 3
+      },
+      "efficiency2": {
+        "module": "excel",
+        "language": "en",
+        "fileNo": 3
+      }
+    },
+    {
+      "dayNumber": 4,
+      "date": "2026-10-28",
+      "unlockTimeIST": "08:00",
+      "enforce8AMSchedule": true,
+      "title": "RSSB LDC Daily Live All-Rajasthan Test — 2026-10-28",
+      "hindiWords": 792,
+      "englishWords": 679,
+      "efficiency1": {
+        "module": "word",
+        "language": "hi",
+        "fileNo": 4
+      },
+      "efficiency2": {
+        "module": "excel",
+        "language": "en",
+        "fileNo": 4
+      }
+    },
+    {
+      "dayNumber": 5,
+      "date": "2026-10-29",
+      "unlockTimeIST": "08:00",
+      "enforce8AMSchedule": true,
+      "title": "RSSB LDC Daily Live All-Rajasthan Test — 2026-10-29",
+      "hindiWords": 789,
+      "englishWords": 680,
+      "efficiency1": {
+        "module": "word",
+        "language": "hi",
+        "fileNo": 5
+      },
+      "efficiency2": {
+        "module": "excel",
+        "language": "en",
+        "fileNo": 5
+      }
+    },
+    {
+      "dayNumber": 6,
+      "date": "2026-10-30",
+      "unlockTimeIST": "08:00",
+      "enforce8AMSchedule": true,
+      "title": "RSSB LDC Daily Live All-Rajasthan Test — 2026-10-30",
+      "hindiWords": 791,
+      "englishWords": 679,
+      "efficiency1": {
+        "module": "word",
+        "language": "hi",
+        "fileNo": 6
+      },
+      "efficiency2": {
+        "module": "excel",
+        "language": "en",
+        "fileNo": 6
+      }
+    },
+    {
+      "dayNumber": 7,
+      "date": "2026-10-31",
+      "unlockTimeIST": "08:00",
+      "enforce8AMSchedule": true,
+      "title": "RSSB LDC Daily Live All-Rajasthan Test — 2026-10-31",
+      "hindiWords": 791,
+      "englishWords": 679,
+      "efficiency1": {
+        "module": "word",
+        "language": "hi",
+        "fileNo": 7
+      },
+      "efficiency2": {
+        "module": "excel",
+        "language": "en",
+        "fileNo": 7
+      }
+    },
+    {
+      "dayNumber": 8,
+      "date": "2026-11-01",
+      "unlockTimeIST": "08:00",
+      "enforce8AMSchedule": true,
+      "title": "RSSB LDC Daily Live All-Rajasthan Test — 2026-11-01",
+      "hindiWords": 788,
+      "englishWords": 678,
+      "efficiency1": {
+        "module": "word",
+        "language": "hi",
+        "fileNo": 8
+      },
+      "efficiency2": {
+        "module": "excel",
+        "language": "en",
+        "fileNo": 8
+      }
+    },
+    {
+      "dayNumber": 9,
+      "date": "2026-11-02",
+      "unlockTimeIST": "08:00",
+      "enforce8AMSchedule": true,
+      "title": "RSSB LDC Daily Live All-Rajasthan Test — 2026-11-02",
+      "hindiWords": 791,
+      "englishWords": 679,
+      "efficiency1": {
+        "module": "word",
+        "language": "hi",
+        "fileNo": 9
+      },
+      "efficiency2": {
+        "module": "excel",
+        "language": "en",
+        "fileNo": 9
+      }
+    },
+    {
+      "dayNumber": 10,
+      "date": "2026-11-03",
+      "unlockTimeIST": "08:00",
+      "enforce8AMSchedule": true,
+      "title": "RSSB LDC Daily Live All-Rajasthan Test — 2026-11-03",
+      "hindiWords": 789,
+      "englishWords": 676,
+      "efficiency1": {
+        "module": "word",
+        "language": "hi",
+        "fileNo": 10
+      },
+      "efficiency2": {
+        "module": "excel",
+        "language": "en",
+        "fileNo": 10
+      }
+    },
+    {
+      "dayNumber": 11,
+      "date": "2026-11-04",
+      "unlockTimeIST": "08:00",
+      "enforce8AMSchedule": true,
+      "title": "RSSB LDC Daily Live All-Rajasthan Test — 2026-11-04",
+      "hindiWords": 790,
+      "englishWords": 675,
+      "efficiency1": {
+        "module": "word",
+        "language": "hi",
+        "fileNo": 11
+      },
+      "efficiency2": {
+        "module": "excel",
+        "language": "en",
+        "fileNo": 11
+      }
+    },
+    {
+      "dayNumber": 12,
+      "date": "2026-11-05",
+      "unlockTimeIST": "08:00",
+      "enforce8AMSchedule": true,
+      "title": "RSSB LDC Daily Live All-Rajasthan Test — 2026-11-05",
+      "hindiWords": 791,
+      "englishWords": 676,
+      "efficiency1": {
+        "module": "word",
+        "language": "hi",
+        "fileNo": 12
+      },
+      "efficiency2": {
+        "module": "excel",
+        "language": "en",
+        "fileNo": 12
+      }
+    },
+    {
+      "dayNumber": 13,
+      "date": "2026-11-06",
+      "unlockTimeIST": "08:00",
+      "enforce8AMSchedule": true,
+      "title": "RSSB LDC Daily Live All-Rajasthan Test — 2026-11-06",
+      "hindiWords": 790,
+      "englishWords": 677,
+      "efficiency1": {
+        "module": "word",
+        "language": "hi",
+        "fileNo": 13
+      },
+      "efficiency2": {
+        "module": "excel",
+        "language": "en",
+        "fileNo": 13
+      }
+    },
+    {
+      "dayNumber": 14,
+      "date": "2026-11-07",
+      "unlockTimeIST": "08:00",
+      "enforce8AMSchedule": true,
+      "title": "RSSB LDC Daily Live All-Rajasthan Test — 2026-11-07",
+      "hindiWords": 793,
+      "englishWords": 682,
+      "efficiency1": {
+        "module": "word",
+        "language": "hi",
+        "fileNo": 14
+      },
+      "efficiency2": {
+        "module": "excel",
+        "language": "en",
+        "fileNo": 14
+      }
+    },
+    {
+      "dayNumber": 15,
+      "date": "2026-11-08",
+      "unlockTimeIST": "08:00",
+      "enforce8AMSchedule": true,
+      "title": "RSSB LDC Daily Live All-Rajasthan Test — 2026-11-08",
+      "hindiWords": 789,
+      "englishWords": 678,
+      "efficiency1": {
+        "module": "word",
+        "language": "hi",
+        "fileNo": 15
+      },
+      "efficiency2": {
+        "module": "excel",
+        "language": "en",
+        "fileNo": 15
+      }
+    },
+    {
+      "dayNumber": 16,
+      "date": "2026-11-09",
+      "unlockTimeIST": "08:00",
+      "enforce8AMSchedule": true,
+      "title": "RSSB LDC Daily Live All-Rajasthan Test — 2026-11-09",
+      "hindiWords": 791,
+      "englishWords": 681,
+      "efficiency1": {
+        "module": "word",
+        "language": "hi",
+        "fileNo": 16
+      },
+      "efficiency2": {
+        "module": "excel",
+        "language": "en",
+        "fileNo": 16
+      }
+    },
+    {
+      "dayNumber": 17,
+      "date": "2026-11-10",
+      "unlockTimeIST": "08:00",
+      "enforce8AMSchedule": true,
+      "title": "RSSB LDC Daily Live All-Rajasthan Test — 2026-11-10",
+      "hindiWords": 790,
+      "englishWords": 677,
+      "efficiency1": {
+        "module": "word",
+        "language": "hi",
+        "fileNo": 17
+      },
+      "efficiency2": {
+        "module": "excel",
+        "language": "en",
+        "fileNo": 17
+      }
+    },
+    {
+      "dayNumber": 18,
+      "date": "2026-11-11",
+      "unlockTimeIST": "08:00",
+      "enforce8AMSchedule": true,
+      "title": "RSSB LDC Daily Live All-Rajasthan Test — 2026-11-11",
+      "hindiWords": 788,
+      "englishWords": 676,
+      "efficiency1": {
+        "module": "word",
+        "language": "hi",
+        "fileNo": 18
+      },
+      "efficiency2": {
+        "module": "excel",
+        "language": "en",
+        "fileNo": 18
+      }
+    },
+    {
+      "dayNumber": 19,
+      "date": "2026-11-12",
+      "unlockTimeIST": "08:00",
+      "enforce8AMSchedule": true,
+      "title": "RSSB LDC Daily Live All-Rajasthan Test — 2026-11-12",
+      "hindiWords": 792,
+      "englishWords": 677,
+      "efficiency1": {
+        "module": "word",
+        "language": "hi",
+        "fileNo": 19
+      },
+      "efficiency2": {
+        "module": "excel",
+        "language": "en",
+        "fileNo": 19
+      }
+    },
+    {
+      "dayNumber": 20,
+      "date": "2026-11-13",
+      "unlockTimeIST": "08:00",
+      "enforce8AMSchedule": true,
+      "title": "RSSB LDC Daily Live All-Rajasthan Test — 2026-11-13",
+      "hindiWords": 789,
+      "englishWords": 680,
+      "efficiency1": {
+        "module": "word",
+        "language": "hi",
+        "fileNo": 20
+      },
+      "efficiency2": {
+        "module": "excel",
+        "language": "en",
+        "fileNo": 20
+      }
+    },
+    {
+      "dayNumber": 21,
+      "date": "2026-11-14",
+      "unlockTimeIST": "08:00",
+      "enforce8AMSchedule": true,
+      "title": "RSSB LDC Daily Live All-Rajasthan Test — 2026-11-14",
+      "hindiWords": 789,
+      "englishWords": 677,
+      "efficiency1": {
+        "module": "word",
+        "language": "hi",
+        "fileNo": 21
+      },
+      "efficiency2": {
+        "module": "excel",
+        "language": "en",
+        "fileNo": 21
+      }
+    },
+    {
+      "dayNumber": 22,
+      "date": "2026-11-15",
+      "unlockTimeIST": "08:00",
+      "enforce8AMSchedule": true,
+      "title": "RSSB LDC Daily Live All-Rajasthan Test — 2026-11-15",
+      "hindiWords": 791,
+      "englishWords": 679,
+      "efficiency1": {
+        "module": "word",
+        "language": "hi",
+        "fileNo": 22
+      },
+      "efficiency2": {
+        "module": "excel",
+        "language": "en",
+        "fileNo": 22
+      }
+    },
+    {
+      "dayNumber": 23,
+      "date": "2026-11-16",
+      "unlockTimeIST": "08:00",
+      "enforce8AMSchedule": true,
+      "title": "RSSB LDC Daily Live All-Rajasthan Test — 2026-11-16",
+      "hindiWords": 788,
+      "englishWords": 678,
+      "efficiency1": {
+        "module": "word",
+        "language": "hi",
+        "fileNo": 23
+      },
+      "efficiency2": {
+        "module": "excel",
+        "language": "en",
+        "fileNo": 23
+      }
+    },
+    {
+      "dayNumber": 24,
+      "date": "2026-11-17",
+      "unlockTimeIST": "08:00",
+      "enforce8AMSchedule": true,
+      "title": "RSSB LDC Daily Live All-Rajasthan Test — 2026-11-17",
+      "hindiWords": 791,
+      "englishWords": 681,
+      "efficiency1": {
+        "module": "word",
+        "language": "hi",
+        "fileNo": 24
+      },
+      "efficiency2": {
+        "module": "excel",
+        "language": "en",
+        "fileNo": 24
+      }
+    },
+    {
+      "dayNumber": 25,
+      "date": "2026-11-18",
+      "unlockTimeIST": "08:00",
+      "enforce8AMSchedule": true,
+      "title": "RSSB LDC Daily Live All-Rajasthan Test — 2026-11-18",
+      "hindiWords": 789,
+      "englishWords": 676,
+      "efficiency1": {
+        "module": "word",
+        "language": "hi",
+        "fileNo": 25
+      },
+      "efficiency2": {
+        "module": "excel",
+        "language": "en",
+        "fileNo": 25
+      }
+    },
+    {
+      "dayNumber": 26,
+      "date": "2026-11-19",
+      "unlockTimeIST": "08:00",
+      "enforce8AMSchedule": true,
+      "title": "RSSB LDC Daily Live All-Rajasthan Test — 2026-11-19",
+      "hindiWords": 792,
+      "englishWords": 677,
+      "efficiency1": {
+        "module": "word",
+        "language": "hi",
+        "fileNo": 26
+      },
+      "efficiency2": {
+        "module": "excel",
+        "language": "en",
+        "fileNo": 26
+      }
+    },
+    {
+      "dayNumber": 27,
+      "date": "2026-11-20",
+      "unlockTimeIST": "08:00",
+      "enforce8AMSchedule": true,
+      "title": "RSSB LDC Daily Live All-Rajasthan Test — 2026-11-20",
+      "hindiWords": 791,
+      "englishWords": 676,
+      "efficiency1": {
+        "module": "word",
+        "language": "hi",
+        "fileNo": 27
+      },
+      "efficiency2": {
+        "module": "excel",
+        "language": "en",
+        "fileNo": 27
+      }
+    },
+    {
+      "dayNumber": 28,
+      "date": "2026-11-21",
+      "unlockTimeIST": "08:00",
+      "enforce8AMSchedule": true,
+      "title": "RSSB LDC Daily Live All-Rajasthan Test — 2026-11-21",
+      "hindiWords": 790,
+      "englishWords": 677,
+      "efficiency1": {
+        "module": "word",
+        "language": "hi",
+        "fileNo": 28
+      },
+      "efficiency2": {
+        "module": "excel",
+        "language": "en",
+        "fileNo": 28
+      }
+    },
+    {
+      "dayNumber": 29,
+      "date": "2026-11-22",
+      "unlockTimeIST": "08:00",
+      "enforce8AMSchedule": true,
+      "title": "RSSB LDC Daily Live All-Rajasthan Test — 2026-11-22",
+      "hindiWords": 793,
+      "englishWords": 680,
+      "efficiency1": {
+        "module": "word",
+        "language": "hi",
+        "fileNo": 29
+      },
+      "efficiency2": {
+        "module": "excel",
+        "language": "en",
+        "fileNo": 29
+      }
+    },
+    {
+      "dayNumber": 30,
+      "date": "2026-11-23",
+      "unlockTimeIST": "08:00",
+      "enforce8AMSchedule": true,
+      "title": "RSSB LDC Daily Live All-Rajasthan Test — 2026-11-23",
+      "hindiWords": 789,
+      "englishWords": 678,
+      "efficiency1": {
+        "module": "word",
+        "language": "hi",
+        "fileNo": 30
+      },
+      "efficiency2": {
+        "module": "excel",
+        "language": "en",
+        "fileNo": 30
+      }
+    },
+    {
+      "dayNumber": 31,
+      "date": "2026-11-24",
+      "unlockTimeIST": "08:00",
+      "enforce8AMSchedule": true,
+      "title": "RSSB LDC Daily Live All-Rajasthan Test — 2026-11-24",
+      "hindiWords": 789,
+      "englishWords": 679,
+      "efficiency1": {
+        "module": "word",
+        "language": "hi",
+        "fileNo": 31
+      },
+      "efficiency2": {
+        "module": "excel",
+        "language": "en",
+        "fileNo": 31
+      }
+    },
+    {
+      "dayNumber": 32,
+      "date": "2026-11-25",
+      "unlockTimeIST": "08:00",
+      "enforce8AMSchedule": true,
+      "title": "RSSB LDC Daily Live All-Rajasthan Test — 2026-11-25",
+      "hindiWords": 790,
+      "englishWords": 677,
+      "efficiency1": {
+        "module": "word",
+        "language": "hi",
+        "fileNo": 32
+      },
+      "efficiency2": {
+        "module": "excel",
+        "language": "en",
+        "fileNo": 32
+      }
+    },
+    {
+      "dayNumber": 33,
+      "date": "2026-11-26",
+      "unlockTimeIST": "08:00",
+      "enforce8AMSchedule": true,
+      "title": "RSSB LDC Daily Live All-Rajasthan Test — 2026-11-26",
+      "hindiWords": 788,
+      "englishWords": 676,
+      "efficiency1": {
+        "module": "word",
+        "language": "hi",
+        "fileNo": 33
+      },
+      "efficiency2": {
+        "module": "excel",
+        "language": "en",
+        "fileNo": 33
+      }
+    },
+    {
+      "dayNumber": 34,
+      "date": "2026-11-27",
+      "unlockTimeIST": "08:00",
+      "enforce8AMSchedule": true,
+      "title": "RSSB LDC Daily Live All-Rajasthan Test — 2026-11-27",
+      "hindiWords": 792,
+      "englishWords": 679,
+      "efficiency1": {
+        "module": "word",
+        "language": "hi",
+        "fileNo": 34
+      },
+      "efficiency2": {
+        "module": "excel",
+        "language": "en",
+        "fileNo": 34
+      }
+    },
+    {
+      "dayNumber": 35,
+      "date": "2026-11-28",
+      "unlockTimeIST": "08:00",
+      "enforce8AMSchedule": true,
+      "title": "RSSB LDC Daily Live All-Rajasthan Test — 2026-11-28",
+      "hindiWords": 789,
+      "englishWords": 680,
+      "efficiency1": {
+        "module": "word",
+        "language": "hi",
+        "fileNo": 35
+      },
+      "efficiency2": {
+        "module": "excel",
+        "language": "en",
+        "fileNo": 35
+      }
+    },
+    {
+      "dayNumber": 36,
+      "date": "2026-11-29",
+      "unlockTimeIST": "08:00",
+      "enforce8AMSchedule": true,
+      "title": "RSSB LDC Daily Live All-Rajasthan Test — 2026-11-29",
+      "hindiWords": 791,
+      "englishWords": 679,
+      "efficiency1": {
+        "module": "word",
+        "language": "en",
+        "fileNo": 36
+      },
+      "efficiency2": {
+        "module": "excel",
+        "language": "hi",
+        "fileNo": 36
+      }
+    },
+    {
+      "dayNumber": 37,
+      "date": "2026-11-30",
+      "unlockTimeIST": "08:00",
+      "enforce8AMSchedule": true,
+      "title": "RSSB LDC Daily Live All-Rajasthan Test — 2026-11-30",
+      "hindiWords": 791,
+      "englishWords": 679,
+      "efficiency1": {
+        "module": "word",
+        "language": "en",
+        "fileNo": 37
+      },
+      "efficiency2": {
+        "module": "excel",
+        "language": "hi",
+        "fileNo": 37
+      }
+    },
+    {
+      "dayNumber": 38,
+      "date": "2026-12-01",
+      "unlockTimeIST": "08:00",
+      "enforce8AMSchedule": true,
+      "title": "RSSB LDC Daily Live All-Rajasthan Test — 2026-12-01",
+      "hindiWords": 788,
+      "englishWords": 678,
+      "efficiency1": {
+        "module": "word",
+        "language": "en",
+        "fileNo": 38
+      },
+      "efficiency2": {
+        "module": "excel",
+        "language": "hi",
+        "fileNo": 38
+      }
+    },
+    {
+      "dayNumber": 39,
+      "date": "2026-12-02",
+      "unlockTimeIST": "08:00",
+      "enforce8AMSchedule": true,
+      "title": "RSSB LDC Daily Live All-Rajasthan Test — 2026-12-02",
+      "hindiWords": 791,
+      "englishWords": 679,
+      "efficiency1": {
+        "module": "word",
+        "language": "en",
+        "fileNo": 39
+      },
+      "efficiency2": {
+        "module": "excel",
+        "language": "hi",
+        "fileNo": 39
+      }
+    },
+    {
+      "dayNumber": 40,
+      "date": "2026-12-03",
+      "unlockTimeIST": "08:00",
+      "enforce8AMSchedule": true,
+      "title": "RSSB LDC Daily Live All-Rajasthan Test — 2026-12-03",
+      "hindiWords": 789,
+      "englishWords": 676,
+      "efficiency1": {
+        "module": "word",
+        "language": "en",
+        "fileNo": 40
+      },
+      "efficiency2": {
+        "module": "excel",
+        "language": "hi",
+        "fileNo": 40
+      }
+    },
+    {
+      "dayNumber": 41,
+      "date": "2026-12-04",
+      "unlockTimeIST": "08:00",
+      "enforce8AMSchedule": true,
+      "title": "RSSB LDC Daily Live All-Rajasthan Test — 2026-12-04",
+      "hindiWords": 790,
+      "englishWords": 675,
+      "efficiency1": {
+        "module": "word",
+        "language": "en",
+        "fileNo": 1
+      },
+      "efficiency2": {
+        "module": "excel",
+        "language": "hi",
+        "fileNo": 1
+      }
+    },
+    {
+      "dayNumber": 42,
+      "date": "2026-12-05",
+      "unlockTimeIST": "08:00",
+      "enforce8AMSchedule": true,
+      "title": "RSSB LDC Daily Live All-Rajasthan Test — 2026-12-05",
+      "hindiWords": 791,
+      "englishWords": 676,
+      "efficiency1": {
+        "module": "word",
+        "language": "en",
+        "fileNo": 2
+      },
+      "efficiency2": {
+        "module": "excel",
+        "language": "hi",
+        "fileNo": 2
+      }
+    },
+    {
+      "dayNumber": 43,
+      "date": "2026-12-06",
+      "unlockTimeIST": "08:00",
+      "enforce8AMSchedule": true,
+      "title": "RSSB LDC Daily Live All-Rajasthan Test — 2026-12-06",
+      "hindiWords": 790,
+      "englishWords": 677,
+      "efficiency1": {
+        "module": "word",
+        "language": "en",
+        "fileNo": 3
+      },
+      "efficiency2": {
+        "module": "excel",
+        "language": "hi",
+        "fileNo": 3
+      }
+    },
+    {
+      "dayNumber": 44,
+      "date": "2026-12-07",
+      "unlockTimeIST": "08:00",
+      "enforce8AMSchedule": true,
+      "title": "RSSB LDC Daily Live All-Rajasthan Test — 2026-12-07",
+      "hindiWords": 793,
+      "englishWords": 682,
+      "efficiency1": {
+        "module": "word",
+        "language": "en",
+        "fileNo": 4
+      },
+      "efficiency2": {
+        "module": "excel",
+        "language": "hi",
+        "fileNo": 4
+      }
+    },
+    {
+      "dayNumber": 45,
+      "date": "2026-12-08",
+      "unlockTimeIST": "08:00",
+      "enforce8AMSchedule": true,
+      "title": "RSSB LDC Daily Live All-Rajasthan Test — 2026-12-08",
+      "hindiWords": 789,
+      "englishWords": 678,
+      "efficiency1": {
+        "module": "word",
+        "language": "en",
+        "fileNo": 5
+      },
+      "efficiency2": {
+        "module": "excel",
+        "language": "hi",
+        "fileNo": 5
+      }
+    },
+    {
+      "dayNumber": 46,
+      "date": "2026-12-09",
+      "unlockTimeIST": "08:00",
+      "enforce8AMSchedule": true,
+      "title": "RSSB LDC Daily Live All-Rajasthan Test — 2026-12-09",
+      "hindiWords": 791,
+      "englishWords": 681,
+      "efficiency1": {
+        "module": "word",
+        "language": "en",
+        "fileNo": 6
+      },
+      "efficiency2": {
+        "module": "excel",
+        "language": "hi",
+        "fileNo": 6
+      }
+    },
+    {
+      "dayNumber": 47,
+      "date": "2026-12-10",
+      "unlockTimeIST": "08:00",
+      "enforce8AMSchedule": true,
+      "title": "RSSB LDC Daily Live All-Rajasthan Test — 2026-12-10",
+      "hindiWords": 790,
+      "englishWords": 677,
+      "efficiency1": {
+        "module": "word",
+        "language": "en",
+        "fileNo": 7
+      },
+      "efficiency2": {
+        "module": "excel",
+        "language": "hi",
+        "fileNo": 7
+      }
+    },
+    {
+      "dayNumber": 48,
+      "date": "2026-12-11",
+      "unlockTimeIST": "08:00",
+      "enforce8AMSchedule": true,
+      "title": "RSSB LDC Daily Live All-Rajasthan Test — 2026-12-11",
+      "hindiWords": 788,
+      "englishWords": 676,
+      "efficiency1": {
+        "module": "word",
+        "language": "en",
+        "fileNo": 8
+      },
+      "efficiency2": {
+        "module": "excel",
+        "language": "hi",
+        "fileNo": 8
+      }
+    },
+    {
+      "dayNumber": 49,
+      "date": "2026-12-12",
+      "unlockTimeIST": "08:00",
+      "enforce8AMSchedule": true,
+      "title": "RSSB LDC Daily Live All-Rajasthan Test — 2026-12-12",
+      "hindiWords": 792,
+      "englishWords": 677,
+      "efficiency1": {
+        "module": "word",
+        "language": "en",
+        "fileNo": 9
+      },
+      "efficiency2": {
+        "module": "excel",
+        "language": "hi",
+        "fileNo": 9
+      }
+    },
+    {
+      "dayNumber": 50,
+      "date": "2026-12-13",
+      "unlockTimeIST": "08:00",
+      "enforce8AMSchedule": true,
+      "title": "RSSB LDC Daily Live All-Rajasthan Test — 2026-12-13",
+      "hindiWords": 789,
+      "englishWords": 680,
+      "efficiency1": {
+        "module": "word",
+        "language": "en",
+        "fileNo": 10
+      },
+      "efficiency2": {
+        "module": "excel",
+        "language": "hi",
+        "fileNo": 10
+      }
+    },
+    {
+      "dayNumber": 51,
+      "date": "2026-12-14",
+      "unlockTimeIST": "08:00",
+      "enforce8AMSchedule": true,
+      "title": "RSSB LDC Daily Live All-Rajasthan Test — 2026-12-14",
+      "hindiWords": 789,
+      "englishWords": 677,
+      "efficiency1": {
+        "module": "word",
+        "language": "en",
+        "fileNo": 11
+      },
+      "efficiency2": {
+        "module": "excel",
+        "language": "hi",
+        "fileNo": 11
+      }
+    },
+    {
+      "dayNumber": 52,
+      "date": "2026-12-15",
+      "unlockTimeIST": "08:00",
+      "enforce8AMSchedule": true,
+      "title": "RSSB LDC Daily Live All-Rajasthan Test — 2026-12-15",
+      "hindiWords": 791,
+      "englishWords": 679,
+      "efficiency1": {
+        "module": "word",
+        "language": "en",
+        "fileNo": 12
+      },
+      "efficiency2": {
+        "module": "excel",
+        "language": "hi",
+        "fileNo": 12
+      }
+    },
+    {
+      "dayNumber": 53,
+      "date": "2026-12-16",
+      "unlockTimeIST": "08:00",
+      "enforce8AMSchedule": true,
+      "title": "RSSB LDC Daily Live All-Rajasthan Test — 2026-12-16",
+      "hindiWords": 788,
+      "englishWords": 678,
+      "efficiency1": {
+        "module": "word",
+        "language": "en",
+        "fileNo": 13
+      },
+      "efficiency2": {
+        "module": "excel",
+        "language": "hi",
+        "fileNo": 13
+      }
+    },
+    {
+      "dayNumber": 54,
+      "date": "2026-12-17",
+      "unlockTimeIST": "08:00",
+      "enforce8AMSchedule": true,
+      "title": "RSSB LDC Daily Live All-Rajasthan Test — 2026-12-17",
+      "hindiWords": 791,
+      "englishWords": 681,
+      "efficiency1": {
+        "module": "word",
+        "language": "en",
+        "fileNo": 14
+      },
+      "efficiency2": {
+        "module": "excel",
+        "language": "hi",
+        "fileNo": 14
+      }
+    },
+    {
+      "dayNumber": 55,
+      "date": "2026-12-18",
+      "unlockTimeIST": "08:00",
+      "enforce8AMSchedule": true,
+      "title": "RSSB LDC Daily Live All-Rajasthan Test — 2026-12-18",
+      "hindiWords": 789,
+      "englishWords": 676,
+      "efficiency1": {
+        "module": "word",
+        "language": "en",
+        "fileNo": 15
+      },
+      "efficiency2": {
+        "module": "excel",
+        "language": "hi",
+        "fileNo": 15
+      }
+    },
+    {
+      "dayNumber": 56,
+      "date": "2026-12-19",
+      "unlockTimeIST": "08:00",
+      "enforce8AMSchedule": true,
+      "title": "RSSB LDC Daily Live All-Rajasthan Test — 2026-12-19",
+      "hindiWords": 792,
+      "englishWords": 677,
+      "efficiency1": {
+        "module": "word",
+        "language": "en",
+        "fileNo": 16
+      },
+      "efficiency2": {
+        "module": "excel",
+        "language": "hi",
+        "fileNo": 16
+      }
+    },
+    {
+      "dayNumber": 57,
+      "date": "2026-12-20",
+      "unlockTimeIST": "08:00",
+      "enforce8AMSchedule": true,
+      "title": "RSSB LDC Daily Live All-Rajasthan Test — 2026-12-20",
+      "hindiWords": 791,
+      "englishWords": 676,
+      "efficiency1": {
+        "module": "word",
+        "language": "en",
+        "fileNo": 17
+      },
+      "efficiency2": {
+        "module": "excel",
+        "language": "hi",
+        "fileNo": 17
+      }
+    },
+    {
+      "dayNumber": 58,
+      "date": "2026-12-21",
+      "unlockTimeIST": "08:00",
+      "enforce8AMSchedule": true,
+      "title": "RSSB LDC Daily Live All-Rajasthan Test — 2026-12-21",
+      "hindiWords": 790,
+      "englishWords": 677,
+      "efficiency1": {
+        "module": "word",
+        "language": "en",
+        "fileNo": 18
+      },
+      "efficiency2": {
+        "module": "excel",
+        "language": "hi",
+        "fileNo": 18
+      }
+    },
+    {
+      "dayNumber": 59,
+      "date": "2026-12-22",
+      "unlockTimeIST": "08:00",
+      "enforce8AMSchedule": true,
+      "title": "RSSB LDC Daily Live All-Rajasthan Test — 2026-12-22",
+      "hindiWords": 793,
+      "englishWords": 680,
+      "efficiency1": {
+        "module": "word",
+        "language": "en",
+        "fileNo": 19
+      },
+      "efficiency2": {
+        "module": "excel",
+        "language": "hi",
+        "fileNo": 19
+      }
+    },
+    {
+      "dayNumber": 60,
+      "date": "2026-12-23",
+      "unlockTimeIST": "08:00",
+      "enforce8AMSchedule": true,
+      "title": "RSSB LDC Daily Live All-Rajasthan Test — 2026-12-23",
+      "hindiWords": 789,
+      "englishWords": 678,
+      "efficiency1": {
+        "module": "word",
+        "language": "en",
+        "fileNo": 20
+      },
+      "efficiency2": {
+        "module": "excel",
+        "language": "hi",
+        "fileNo": 20
+      }
+    },
+    {
+      "dayNumber": 61,
+      "date": "2026-12-24",
+      "unlockTimeIST": "08:00",
+      "enforce8AMSchedule": true,
+      "title": "RSSB LDC Daily Live All-Rajasthan Test — 2026-12-24",
+      "hindiWords": 789,
+      "englishWords": 679,
+      "efficiency1": {
+        "module": "word",
+        "language": "en",
+        "fileNo": 21
+      },
+      "efficiency2": {
+        "module": "excel",
+        "language": "hi",
+        "fileNo": 21
+      }
+    },
+    {
+      "dayNumber": 62,
+      "date": "2026-12-25",
+      "unlockTimeIST": "08:00",
+      "enforce8AMSchedule": true,
+      "title": "RSSB LDC Daily Live All-Rajasthan Test — 2026-12-25",
+      "hindiWords": 790,
+      "englishWords": 677,
+      "efficiency1": {
+        "module": "word",
+        "language": "en",
+        "fileNo": 22
+      },
+      "efficiency2": {
+        "module": "excel",
+        "language": "hi",
+        "fileNo": 22
+      }
+    },
+    {
+      "dayNumber": 63,
+      "date": "2026-12-26",
+      "unlockTimeIST": "08:00",
+      "enforce8AMSchedule": true,
+      "title": "RSSB LDC Daily Live All-Rajasthan Test — 2026-12-26",
+      "hindiWords": 788,
+      "englishWords": 676,
+      "efficiency1": {
+        "module": "word",
+        "language": "en",
+        "fileNo": 23
+      },
+      "efficiency2": {
+        "module": "excel",
+        "language": "hi",
+        "fileNo": 23
+      }
+    },
+    {
+      "dayNumber": 64,
+      "date": "2026-12-27",
+      "unlockTimeIST": "08:00",
+      "enforce8AMSchedule": true,
+      "title": "RSSB LDC Daily Live All-Rajasthan Test — 2026-12-27",
+      "hindiWords": 792,
+      "englishWords": 679,
+      "efficiency1": {
+        "module": "word",
+        "language": "en",
+        "fileNo": 24
+      },
+      "efficiency2": {
+        "module": "excel",
+        "language": "hi",
+        "fileNo": 24
+      }
+    },
+    {
+      "dayNumber": 65,
+      "date": "2026-12-28",
+      "unlockTimeIST": "08:00",
+      "enforce8AMSchedule": true,
+      "title": "RSSB LDC Daily Live All-Rajasthan Test — 2026-12-28",
+      "hindiWords": 789,
+      "englishWords": 680,
+      "efficiency1": {
+        "module": "word",
+        "language": "en",
+        "fileNo": 25
+      },
+      "efficiency2": {
+        "module": "excel",
+        "language": "hi",
+        "fileNo": 25
+      }
+    },
+    {
+      "dayNumber": 66,
+      "date": "2026-12-29",
+      "unlockTimeIST": "08:00",
+      "enforce8AMSchedule": true,
+      "title": "RSSB LDC Daily Live All-Rajasthan Test — 2026-12-29",
+      "hindiWords": 791,
+      "englishWords": 679,
+      "efficiency1": {
+        "module": "word",
+        "language": "en",
+        "fileNo": 26
+      },
+      "efficiency2": {
+        "module": "excel",
+        "language": "hi",
+        "fileNo": 26
+      }
+    },
+    {
+      "dayNumber": 67,
+      "date": "2026-12-30",
+      "unlockTimeIST": "08:00",
+      "enforce8AMSchedule": true,
+      "title": "RSSB LDC Daily Live All-Rajasthan Test — 2026-12-30",
+      "hindiWords": 791,
+      "englishWords": 679,
+      "efficiency1": {
+        "module": "word",
+        "language": "en",
+        "fileNo": 27
+      },
+      "efficiency2": {
+        "module": "excel",
+        "language": "hi",
+        "fileNo": 27
+      }
+    },
+    {
+      "dayNumber": 68,
+      "date": "2026-12-31",
+      "unlockTimeIST": "08:00",
+      "enforce8AMSchedule": true,
+      "title": "RSSB LDC Daily Live All-Rajasthan Test — 2026-12-31",
+      "hindiWords": 788,
+      "englishWords": 678,
+      "efficiency1": {
+        "module": "word",
+        "language": "en",
+        "fileNo": 28
+      },
+      "efficiency2": {
+        "module": "excel",
+        "language": "hi",
+        "fileNo": 28
+      }
+    },
+    {
+      "dayNumber": 69,
+      "date": "2027-01-01",
+      "unlockTimeIST": "08:00",
+      "enforce8AMSchedule": true,
+      "title": "RSSB LDC Daily Live All-Rajasthan Test — 2027-01-01",
+      "hindiWords": 791,
+      "englishWords": 679,
+      "efficiency1": {
+        "module": "word",
+        "language": "en",
+        "fileNo": 29
+      },
+      "efficiency2": {
+        "module": "excel",
+        "language": "hi",
+        "fileNo": 29
+      }
+    },
+    {
+      "dayNumber": 70,
+      "date": "2027-01-02",
+      "unlockTimeIST": "08:00",
+      "enforce8AMSchedule": true,
+      "title": "RSSB LDC Daily Live All-Rajasthan Test — 2027-01-02",
+      "hindiWords": 789,
+      "englishWords": 676,
+      "efficiency1": {
+        "module": "word",
+        "language": "en",
+        "fileNo": 30
+      },
+      "efficiency2": {
+        "module": "excel",
+        "language": "hi",
+        "fileNo": 30
+      }
+    }
+  ]
+}
